@@ -14,15 +14,14 @@ chat = os.getenv('TELEGRAM_CHAT')
 # ... rest of your script ...
 client = TelegramClient('anon', api_id, api_hash)
 client.start()
-key_words = ["Кошачий", "кошачий", "Клетка", "клетка", 'Вольер', 'вольер']
+key_words = ["кошачий", "клетка", 'вольер']
 
 @client.on(events.NewMessage(chats=(chatFrom,)))
 async def main(event):
     channel = await client.get_entity(event.chat_id)
     for word in key_words:
-        if word in event.text:
+        if word in event.text.lower():
             await client.send_message(chat, event.text + "\n" + "t.me/" + str(channel.username) + "/" + str(event.id), file=event.photo)
-            print(word)
             break
 
 client.run_until_disconnected()
