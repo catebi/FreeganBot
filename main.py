@@ -1,9 +1,12 @@
 from dotenv import load_dotenv
 import os
+import logging
 from telethon import TelegramClient, events
 
 # Load environment variables from .env file
 load_dotenv()
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Now, use os.getenv to read the environment variables
 api_id = os.getenv('TELEGRAM_API_ID')
@@ -18,6 +21,9 @@ key_words = ["кошачий", "клетка", 'вольер']
 
 @client.on(events.NewMessage(chats=(chatFrom,)))
 async def main(event):
+    # Log the incoming message
+    # logging.info(f"New message in chat {event.chat_id}: {event.text}")
+
     channel = await client.get_entity(event.chat_id)
     for word in key_words:
         if word in event.text.lower():
