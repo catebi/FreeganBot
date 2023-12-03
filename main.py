@@ -10,6 +10,8 @@ load_dotenv()
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+logging.info('bot started')
+
 env = os.getenv('ENV', 'dev')  # Default to 'prod' if ENV is not set
 config_file_name = 'config.dev.yaml' if env == 'dev' else 'config.yaml'
 
@@ -38,15 +40,29 @@ async def new_message_listener(event):
     for word in keywords:
         text = event.text.lower()
         if re.compile(r'\b({0})\b'.format(word), flags=re.IGNORECASE).search(text):
-            print(f"Keyword '{word}' found in chat {event.chat.username}: {event.text}")
+            logging.info(f"Keyword '{word}' found in chat {event.chat_id}: {event.text}")
             await client.send_message(chat_send_to, event.text + "\n" + "t.me/" + str(event.chat.username) + "/" + str(event.id), file=event.photo)
             break
 
 async def main():
     # await client .start(bot_token=bot_token)
-    await client.start()
-    print("Client started. Listening for messages...")
+    logging.info('before client is started')
+    try:
+        await client.start()
+        logging.info("Client is connected.")
+        # Your code here
+    except errors.PhoneNumberInvalidError:
+        logging.info("Error: The phone number is invalid")
+    except errors.AuthKeyError:
+        logging.info("Error: The authorization key is invalid")
+    except errors.ConnectionError:
+        logging.info("Error: Failed to connect to Telegram servers")
+    except Exception as e:
+        logging.info(f"An unexpected error occurred: {e}")
+
+    logging.info("Client started. Listening for messages...")
     await client.run_until_disconnected()
 
-import asyncio
-asyncio.run(main())
+#import asyncio
+#asyncio.run(main())
+client.loop.run_until_complete(main())
