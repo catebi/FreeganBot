@@ -40,13 +40,13 @@ async def new_message_listener(event):
     for word in keywords:
         text = event.text.lower()
         if re.compile(r'\b({0})\b'.format(word), flags=re.IGNORECASE).search(text):
-            logging.info(f"Keyword '{word}' found in chat {event.chat_id}: {event.text}")
+            logging.info(f"Keyword '{word}' found in chat {event.chat.username}: {event.text}")
             await client.send_message(chat_send_to, event.text + "\n" + "t.me/" + str(event.chat.username) + "/" + str(event.id), file=event.photo)
             break
 
 async def main():
     # await client .start(bot_token=bot_token)
-    logging.info('before client is started')
+    logging.info('[main]started..')
     try:
         await client.start()
         logging.info("Client is connected.")
