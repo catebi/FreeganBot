@@ -3,7 +3,7 @@ import os
 import logging
 import yaml
 import re
-from telethon import TelegramClient, events
+from telethon import TelegramClient, events, errors
 
 # Load environment variables from .env file
 load_dotenv()
@@ -16,13 +16,13 @@ env = os.getenv('ENV', 'dev')  # Default to 'prod' if ENV is not set
 config_file_name = 'config.dev.yaml' if env == 'dev' else 'config.yaml'
 
 # Now, use os.getenv to read the environment variables
-api_id = os.getenv('TELEGRAM_API_ID')
-api_hash = os.getenv('TELEGRAM_API_HASH')
+api_id = int(os.getenv('TELEGRAM_API_ID', 0))
+api_hash = str(os.getenv('TELEGRAM_API_HASH'))
 
 # TODO: not used yet, investigate
 # bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
 
-chat_send_to = os.getenv('TELEGRAM_CHAT_SEND_TO')
+chat_send_to = str(os.getenv('TELEGRAM_CHAT_SEND_TO'))
 
 # Load the configuration from the YAML file
 with open(config_file_name, encoding="utf-8") as config_file:
@@ -48,21 +48,17 @@ async def main():
     # await client .start(bot_token=bot_token)
     logging.info('[main]started..')
     try:
-        await client.start()
+        client.start()
         logging.info("Client is connected.")
         # Your code here
     except errors.PhoneNumberInvalidError:
         logging.info("Error: The phone number is invalid")
     except errors.AuthKeyError:
         logging.info("Error: The authorization key is invalid")
-    except errors.ConnectionError:
-        logging.info("Error: Failed to connect to Telegram servers")
+    except errors.TimedOutError:
+        logging.info("Error: Failed to connect to Telegram servers by timeout")
     except Exception as e:
         logging.info(f"An unexpected error occurred: {e}")
 
     logging.info("Client started. Listening for messages...")
-    await client.run_until_disconnected()
-
-#import asyncio
-#asyncio.run(main())
-client.loop.run_until_complete(main())
+    client.run_until_disconnected()
