@@ -1,4 +1,6 @@
 chats:
+  - https://t.me/catebitest01  # for testing purposes
+  - https://t.me/catebitest02  # for testing purposes
   - https://t.me/baraholka_tbi
   - https://t.me/avito_baraholka_tbilisi
   - https://t.me/baraholka_tbilisi
@@ -8,20 +10,41 @@ chats:
   - https://t.me/freegantbilisi
   - https://t.me/Tbilisi_market_bg
   - https://t.me/rabbitsbaraholka
+  - https://t.me/tbilisi_otdam_darom
+  - https://t.me/expatstbilisi
+  - https://t.me/tbilisi_rus
+  - https://t.me/tbilisi_360
+  - https://t.me/tbilisio
+  - https://t.me/gryzia_chat_ads
+  - https://t.me/tbilisi_baraxolka
+  - https://t.me/tbilisiw
+  - https://t.me/tbilisi_avito
+  - https://t.me/Georgia_Avito
+  - https://t.me/barter_ge
 
 keywords:
+  - 'ампулы'
   - 'бентонит'
   - 'бетонит'
   - 'веревка'
+  - 'витамины'
+  - 'вкусняшка'
+  - 'вкусняшки'
+  - 'вольер'
+  - 'габа'
   - 'габапентин'
   - 'джут'
   - 'джутовая'
   - 'джутовый'
   - 'домик'
   - 'дралка'
+  - 'еда'
+  - 'звенелка'
+  - 'игрушка'
   - 'игрушки'
+  - 'инъекции'
+  - 'каталка'
   - 'клетка'
-  - 'коврик'
   - 'когтедерка'
   - 'когтедралка'
   - 'когтеточка'
@@ -34,12 +57,15 @@ keywords:
   - 'кошка'
   - 'кошкам'
   - 'кошке'
+  - 'кошки'
+  - 'лакомства'
+  - 'лакомство'
   - 'лежак'
   - 'лежанка'
   - 'лекарства'
-  - 'лоток'
   - 'лотков'
-  - 'мальт-паста'
+  - 'лоток'
+  - 'мальт-паст'
   - 'миска'
   - 'миски'
   - 'молоко'
@@ -48,15 +74,17 @@ keywords:
   - 'паучи'
   - 'паштет'
   - 'пеленки'
-  - 'перевозка'
   - 'переноска'
   - 'поводок'
   - 'подстилка'
+  - 'подушечки'
   - 'подушка'
   - 'поилка'
   - 'тоннель'
   - 'точилка'
   - 'туннель'
+  - 'уколы'
   - 'фонтанчик'
   - 'шлейка'
   - 'шприцы'
+
