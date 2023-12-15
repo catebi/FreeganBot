@@ -4,6 +4,7 @@ import logging
 import yaml
 import re
 from telethon import TelegramClient, events, errors
+from text_processing import process_text
 
 # Load environment variables from .env file
 load_dotenv()
@@ -38,6 +39,7 @@ client = TelegramClient('catebi_freegan', api_id, api_hash)
 @client.on(events.NewMessage(chats=chat_urls))
 async def new_message_listener(event):
     for word in keywords:
+        # text = process_text(event.text.lower())
         text = event.text.lower()
         if re.compile(r'\b({0})\b'.format(word), flags=re.IGNORECASE).search(text):
             # logging.warning(f"Keyword '{word}' found in chat {event.chat.username}: {event.text}")
