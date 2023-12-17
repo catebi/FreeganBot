@@ -41,7 +41,7 @@ nlp = Russian()
 lemmatizer = nlp.add_pipe("lemmatizer")
 
 # Add new words to the vocabulary
-nlp_new_words = ['мальт-паст', 'веревка', 'габапентин', 'паучи']
+nlp_new_words = ['когтеточка', 'мальт-паст', 'веревка', 'габапентин', 'паучи']
 for word in nlp_new_words:
     nlp.vocab.strings.add(word)  # Add the word to the vocabulary
     nlp.vocab[word]  # This creates a Lexeme object for the word

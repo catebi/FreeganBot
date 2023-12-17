@@ -36,9 +36,10 @@ joined_keywords = ' '.join(keywords)
 lemmatized_keywords = sorted(lemmatize(joined_keywords))
 
 keywords_not_in_lemmatized = [word for word in keywords if word not in lemmatized_keywords]
-print(keywords_not_in_lemmatized)
+logging.warning(keywords_not_in_lemmatized)
 
-# print(lemmatized_keywords)
+# Global set to store hashes of sent messages
+sent_messages_cache = set()
 
 # Initialize the client
 client = TelegramClient('catebi_freegan', api_id, api_hash)
@@ -50,15 +51,23 @@ async def new_message_listener(event):
 
     # Check if any keyword is in the lemmas
     if any(word in lemmas for word in keywords):
-        # Find the first matching keyword (optional)
-        matched_word = next(word for word in keywords if word in lemmas)
+        # Find all matching keyword (optional)
+        matched_keywords = [word for word in keywords if word in lemmas]
 
-        # Prepare the message with a link
-        message = f"{event.text}\n\n[t.me/{event.chat.username}/{event.id}](t.me/{event.chat.username}/{event.id})"
+        # Get the sender of the message
+        sender = await event.get_sender()
+        sender_name = "@" + getattr(sender, 'username', 'Unknown')
 
-        # Send the message
-        await client.send_message(chat_send_to, message, file=event.photo)
-        logging.warning(f"Keyword '{matched_word}' found in chat {event.chat.username}: {event.text}")
+        # Compute the hash of the message
+        message_hash = hash(f"{sender_name}_{event.text}")
+
+        # Check if the message has already been sent
+        if message_hash not in sent_messages_cache:
+            matched_keywords_str = ', '.join(matched_keywords)
+            message = f"**{matched_keywords_str}**\n\n{event.text}\n\n[t.me/{event.chat.username}/{event.id}](t.me/{event.chat.username}/{event.id})\nuser: {sender_name}"
+            await client.send_message(chat_send_to, message, file=event.photo)
+            sent_messages_cache.add(message_hash)
+            # logging.warning(f"Keywords '{matched_word}' found in chat {event.chat.username}: {event.text}")
 
 def main():
     # client.start(bot_token=bot_token)
