@@ -2,7 +2,6 @@ from dotenv import load_dotenv
 import os
 import logging
 import yaml
-import re
 from telethon import TelegramClient, events, errors
 from lemmatization import lemmatize
 
@@ -33,19 +32,33 @@ with open(config_file_name, encoding="utf-8") as config_file:
 chat_urls = config['chats']
 keywords = config['keywords']
 
+joined_keywords = ' '.join(keywords)
+lemmatized_keywords = sorted(lemmatize(joined_keywords))
+
+keywords_not_in_lemmatized = [word for word in keywords if word not in lemmatized_keywords]
+print(keywords_not_in_lemmatized)
+
+# print(lemmatized_keywords)
+
 # Initialize the client
 client = TelegramClient('catebi_freegan', api_id, api_hash)
 
 @client.on(events.NewMessage(chats=chat_urls))
 async def new_message_listener(event):
-    for word in keywords:
-        # text = process_text(event.text.lower())
-        text = event.text.lower()
-        if re.compile(r'\b({0})\b'.format(word), flags=re.IGNORECASE).search(text):
-            # logging.warning(f"Keyword '{word}' found in chat {event.chat.username}: {event.text}")
-            message = f"{event.text}\n\n[t.me/{event.chat.username}/{event.id}](t.me/{event.chat.username}/{event.id})"
-            await client.send_message(chat_send_to, message, file=event.photo)
-            break
+    # Process the text of the event to get lemmas
+    lemmas = lemmatize(event.text)
+
+    # Check if any keyword is in the lemmas
+    if any(word in lemmas for word in keywords):
+        # Find the first matching keyword (optional)
+        matched_word = next(word for word in keywords if word in lemmas)
+
+        # Prepare the message with a link
+        message = f"{event.text}\n\n[t.me/{event.chat.username}/{event.id}](t.me/{event.chat.username}/{event.id})"
+
+        # Send the message
+        await client.send_message(chat_send_to, message, file=event.photo)
+        logging.warning(f"Keyword '{matched_word}' found in chat {event.chat.username}: {event.text}")
 
 def main():
     # client.start(bot_token=bot_token)
