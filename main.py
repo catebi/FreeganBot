@@ -4,7 +4,7 @@ import logging
 import yaml
 import re
 from telethon import TelegramClient, events, errors
-from text_processing import process_text
+from lemmatization import lemmatize
 
 # Load environment variables from .env file
 load_dotenv()
