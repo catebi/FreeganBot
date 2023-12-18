@@ -30,7 +30,7 @@ with open(config_file_name, encoding="utf-8") as config_file:
 
 # Extract chat URLs and keywords from the config
 chat_urls = config['chats']
-keywords = config['keywords']
+keywords = set(config['keywords'])
 
 joined_keywords = ' '.join(keywords)
 lemmatized_keywords = sorted(lemmatize(joined_keywords))
@@ -48,17 +48,17 @@ async def new_message_listener(event):
     # Process the text of the event to get lemmas
     lemmas = lemmatize(event.text)
 
+    matched_keywords = lemmas.intersection(keywords)
     # Check if any keyword is in the lemmas
-    if any(word in lemmas for word in keywords):
+    if matched_keywords:
         # Find the first matching keyword (optional)
-        matched_word = next(word for word in keywords if word in lemmas)
 
         # Prepare the message with a link
         message = f"{event.text}\n\n[t.me/{event.chat.username}/{event.id}](t.me/{event.chat.username}/{event.id})"
 
         # Send the message
         await client.send_message(chat_send_to, message, file=event.photo)
-        logging.warning(f"Keyword '{matched_word}' found in chat {event.chat.username}: {event.text}")
+        # logging.warning(f"Keyword '{matched_word}' found in chat {event.chat.username}: {event.text}")
 
 def main():
     # client.start(bot_token=bot_token)
