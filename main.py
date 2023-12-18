@@ -2,9 +2,8 @@ from dotenv import load_dotenv
 import os
 import logging
 import yaml
-import re
 from telethon import TelegramClient, events, errors
-from text_processing import process_text
+from lemmatization import lemmatize
 
 # Load environment variables from .env file
 load_dotenv()
@@ -16,13 +15,8 @@ logging.warning('bot started...')
 env = os.getenv('ENV', 'dev')  # Default to 'prod' if ENV is not set
 config_file_name = 'config.dev.yaml' if env == 'dev' else 'config.yaml'
 
-# Now, use os.getenv to read the environment variables
 api_id = int(os.getenv('TELEGRAM_API_ID', 0))
 api_hash = str(os.getenv('TELEGRAM_API_HASH'))
-
-# TODO: not used yet, investigate
-# bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
-
 chat_send_to = str(os.getenv('TELEGRAM_CHAT_SEND_TO'))
 
 # Load the configuration from the YAML file
@@ -31,29 +25,35 @@ with open(config_file_name, encoding="utf-8") as config_file:
 
 # Extract chat URLs and keywords from the config
 chat_urls = config['chats']
-keywords = config['keywords']
+keywords = set(config['keywords'])
+
+joined_keywords = ' '.join(keywords)
+lemmatized_keywords = sorted(lemmatize(joined_keywords))
+
+keywords_not_in_lemmatized = [word for word in keywords if word not in lemmatized_keywords]
+print(keywords_not_in_lemmatized)
 
 # Initialize the client
 client = TelegramClient('catebi_freegan', api_id, api_hash)
 
 @client.on(events.NewMessage(chats=chat_urls))
 async def new_message_listener(event):
-    for word in keywords:
-        # text = process_text(event.text.lower())
-        text = event.text.lower()
-        if re.compile(r'\b({0})\b'.format(word), flags=re.IGNORECASE).search(text):
-            # logging.warning(f"Keyword '{word}' found in chat {event.chat.username}: {event.text}")
-            message = f"{event.text}\n\n[t.me/{event.chat.username}/{event.id}](t.me/{event.chat.username}/{event.id})"
-            await client.send_message(chat_send_to, message, file=event.photo)
-            break
+    # Process the text of the event to get lemmas
+    lemmas = lemmatize(event.text)
+
+    matched_keywords = lemmas.intersection(keywords)
+    if matched_keywords:
+        # Prepare the message with a link
+        message = f"{event.text}\n\n[t.me/{event.chat.username}/{event.id}](t.me/{event.chat.username}/{event.id})"
+
+        # Send the message
+        await client.send_message(chat_send_to, message, file=event.photo)
 
 def main():
-    # client.start(bot_token=bot_token)
     logging.warning('[main]started..')
     try:
         client.start()
         logging.warning("Client is connected.")
-        # Your code here
     except errors.PhoneNumberInvalidError:
         logging.error("Error: The phone number is invalid")
     except errors.AuthKeyError:
