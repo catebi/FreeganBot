@@ -49,15 +49,22 @@ async def new_message_listener(event):
         # Get the sender of the message
         sender = await event.get_sender()
         sender_name = "@" + getattr(sender, 'username', 'Unknown')
-
+        photos = event.photo
         # Compute the hash of the message
         message_hash = hash(f"{sender_name}_{event.text}")
-
+        if event.grouped_id:
+            photos = [photos]
+            async for mess in client.iter_messages(event.chat.username, min_id=event.id, max_id=event.id + 10,
+                                                   reverse=True):
+                if mess.grouped_id == event.grouped_id:
+                    photos.append(mess.photo)
+                else:
+                    break
         # Check if the message has already been sent
         if message_hash not in sent_messages_cache:
             matched_keywords_str = ', '.join(matched_keywords)
             message = f"**{matched_keywords_str}**\n\n{event.text}\n\n[t.me/{event.chat.username}/{event.id}](t.me/{event.chat.username}/{event.id})\nuser: {sender_name}"
-            await client.send_message(chat_send_to, message, file=event.photo)
+            await client.send_message(chat_send_to, message, file=photos)
             sent_messages_cache.add(message_hash)
 
 def main():
