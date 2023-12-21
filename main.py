@@ -26,7 +26,6 @@ with open(config_file_name, encoding="utf-8") as config_file:
 # Extract chat URLs and keywords from the config
 chat_urls = config['chats']
 keywords = set(config['keywords'])
-
 joined_keywords = ' '.join(keywords)
 lemmatized_keywords = sorted(lemmatize(joined_keywords))
 
@@ -39,6 +38,7 @@ sent_messages_cache = set()
 # Initialize the client
 client = TelegramClient('catebi_freegan', api_id, api_hash)
 
+
 @client.on(events.NewMessage(chats=chat_urls))
 async def new_message_listener(event):
     # Process the text of the event to get lemmas
@@ -49,16 +49,23 @@ async def new_message_listener(event):
         # Get the sender of the message
         sender = await event.get_sender()
         sender_name = "@" + getattr(sender, 'username', 'Unknown')
-
+        photos = event.photo
         # Compute the hash of the message
         message_hash = hash(f"{sender_name}_{event.text}")
-
         # Check if the message has already been sent
         if message_hash not in sent_messages_cache:
+            if event.grouped_id:
+                photos = [photos]
+                async for mess in client.iter_messages(event.chat.username, min_id=event.id, max_id=event.id + 9, reverse=True):
+                    if mess.grouped_id == event.grouped_id:
+                        photos.append(mess.photo)
+                    else:
+                        break
             matched_keywords_str = ', '.join(matched_keywords)
             message = f"**{matched_keywords_str}**\n\n{event.text}\n\n[t.me/{event.chat.username}/{event.id}](t.me/{event.chat.username}/{event.id})\nuser: {sender_name}"
-            await client.send_message(chat_send_to, message, file=event.photo)
+            await client.send_message(chat_send_to, message, file=photos)
             sent_messages_cache.add(message_hash)
+
 
 def main():
     logging.warning('[main]started..')
@@ -76,5 +83,6 @@ def main():
 
     logging.warning("Client started. Listening for messages...")
     client.run_until_disconnected()
+
 
 main()
