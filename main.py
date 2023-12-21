@@ -3,6 +3,7 @@ import os
 import logging
 import yaml
 from telethon import TelegramClient, events, errors
+from datetime import datetime
 from lemmatization import lemmatize
 
 # Load environment variables from .env file
@@ -48,15 +49,21 @@ async def new_message_listener(event):
     if matched_keywords:
         # Get the sender of the message
         sender = await event.get_sender()
-        sender_name = "@" + getattr(sender, 'username', 'Unknown')
 
-        # Compute the hash of the message
-        message_hash = hash(f"{sender_name}_{event.text}")
+        sender_username = getattr(sender, 'username', None)
+        display_username = f"@{sender_username}" if sender_username else "an anonymous user"
+
+        message_hash = hash(f"{display_username}_{event.text}")
 
         # Check if the message has already been sent
         if message_hash not in sent_messages_cache:
             matched_keywords_str = ', '.join(matched_keywords)
-            message = f"**{matched_keywords_str}**\n\n{event.text}\n\n[t.me/{event.chat.username}/{event.id}](t.me/{event.chat.username}/{event.id})\nuser: {sender_name}"
+            current_time = datetime.now().strftime("%H:%M:%S.%f")[:-3]
+            message = (f"**{matched_keywords_str}**\n\n{event.text}\n\n"
+                       f"[t.me/{event.chat.username}/{event.id}](t.me/{event.chat.username}/{event.id})\n"
+                       f"user: {display_username}\n\n"
+                       f"__time__: `{current_time}`\n"
+                       f"__hash__: `{message_hash}`\n")
             await client.send_message(chat_send_to, message, file=event.photo)
             sent_messages_cache.add(message_hash)
 
