@@ -143,29 +143,11 @@ def get_current_time():
     """ Returns the current time formatted as HH:MM:SS.mmm """
     return datetime.now().strftime("%H:%M:%S.%f")[:-3]
 
-# async def main():
-
-#     global client
-#     client = TelegramClient('catebi_freegan', api_id, api_hash)
-
-#     async with TelegramClient('catebi_freegan', api_id, api_hash) as client:
-#         client.add_event_handler(lambda event: new_message_listener(client, event), events.NewMessage(chats=chat_urls))
-#         try:
-#             await debug(client, "Bot has started.", INFO)
-#             await client.run_until_disconnected()
-
-#         except Exception as e:
-#             # Log and send a message if an error occurs
-#             await debug(client,  f"An unexpected error occurred: {e}", ERROR)
-#         finally:
-#             # Send a message when the bot is stopped
-#             await client.send_message(chat_send_to, "Bot has stopped.")
-
 # Define your signal handler
 async def signal_handler(sig, frame):
     global client
     if client:
-        await debug(client, "Bot has stopped", INFO)
+        await debug(client, "Freegan has stopped", INFO)
         client.disconnect()
 
 async def run_client():
@@ -176,7 +158,7 @@ async def run_client():
 
     async with client:
         try:
-            await debug(client, "Bot has started.", INFO)
+            await debug(client, "Freegan has started", INFO)
             await client.run_until_disconnected()
 
         except Exception as e:
