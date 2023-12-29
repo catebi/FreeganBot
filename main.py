@@ -159,13 +159,11 @@ async def run_client():
     async with client:
         try:
             await debug(client, "Freegan has started", INFO)
-            client.run_until_disconnected()
-
+            await client.run_until_disconnected()
         except Exception as e:
             # Log and send a message if an error occurs
             await debug(client,  f"An unexpected error occurred: {e}", ERROR)
         finally:
-            # Send a message when the bot is stopped
             # check if client is disconnected
             if client.is_connected():
                 await client.send_message(chat_send_to, "strange thing happened")
@@ -178,6 +176,5 @@ async def main():
     # loop.run_until_complete(run_client())
 
 if __name__ == "__main__":
-    # Set the logging level
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
     asyncio.run(main())
