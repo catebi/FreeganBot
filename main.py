@@ -1,7 +1,9 @@
 from dotenv import load_dotenv
+import asyncio
 import os
 import logging
 import yaml
+import re
 from telethon import TelegramClient, events, errors
 from datetime import datetime
 from lemmatization import lemmatize
@@ -74,7 +76,8 @@ async def new_message_listener(event):
         sender_username = getattr(sender, 'username', None)
         display_username = f"@{sender_username}" if sender_username else "an anonymous user"
 
-        message_hash = hash(f"{display_username}_{event.text}")
+        sanitized_event_text = re.sub(r'\s+', '', event.text)
+        message_hash = hash(f"{display_username}_{sanitized_event_text}")
 
         photos = event.photo
 
@@ -97,6 +100,7 @@ async def new_message_listener(event):
                        f"__hash__: `{message_hash}`\n")
             await client.send_message(chat_send_to, message, file=photos)
             sent_messages_cache.add(message_hash)
+            await asyncio.sleep(0.3)  # Delay for 100 milliseconds
 
 def main():
     logging.warning('[main]started..')
