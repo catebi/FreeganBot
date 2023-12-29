@@ -100,7 +100,7 @@ async def new_message_listener(event):
                        f"__hash__: `{message_hash}`\n")
             await client.send_message(chat_send_to, message, file=photos)
             sent_messages_cache.add(message_hash)
-            await asyncio.sleep(0.1)  # Delay for 100 milliseconds
+            await asyncio.sleep(0.3)  # Delay for 100 milliseconds
 
 def main():
     logging.warning('[main]started..')
