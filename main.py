@@ -114,9 +114,7 @@ async def new_message_listener(client, event):
             await client.send_message(chat_send_to, message, file=photos)
 
             sent_messages_cache.add(message_hash)
-
-            logging.info(f"hash: {message_hash}")
-            await asyncio.sleep(0.1)  # Delay for 100 milliseconds
+            await asyncio.sleep(0.3)  # Delay for 100 milliseconds
 
 async def debug(client, message, level=DEBUG):
     # Check the current logging level
