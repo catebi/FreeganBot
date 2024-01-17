@@ -22,6 +22,8 @@ chats:
   - https://t.me/Georgia_Avito
   - https://t.me/barter_ge
 
+developers: "@lejafo"
+
 keyword_group_1:
   - 'ампула'
   - 'бентонит'
@@ -108,4 +110,3 @@ filter_keyword_group_4:
   - собака
   - собачья
 
-developers: "@lejafo"
