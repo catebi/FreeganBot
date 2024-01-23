@@ -92,7 +92,7 @@ async def new_message_listener(client, event):
         sanitized_event_text = re.sub(r'\s+', '', event.text)
         message_hash = hash(f"{display_username}_{sanitized_event_text}")
 
-        photos = event.photo
+        photos = event.media
 
         # Check if the message has already been sent
         if message_hash not in sent_messages_cache:
@@ -100,8 +100,7 @@ async def new_message_listener(client, event):
                 photos = [photos]
                 async for mess in client.iter_messages(event.chat.username, min_id=event.id, max_id=event.id + 10, reverse=True):
                     if mess.grouped_id == event.grouped_id:
-                        if mess.photo:  # Check if there is a photo to avoid None
-                            photos.append(mess.photo)
+                        photos.append(mess.media)
                     else:
                         break
             matched_keywords_str = ', '.join(matched_keywords)
