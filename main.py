@@ -5,7 +5,7 @@ import os
 import logging
 import yaml
 import re
-from telethon import TelegramClient, events, errors
+from telethon import TelegramClient, events, errors, functions
 from datetime import datetime
 from lemmatization import lemmatize
 
@@ -41,6 +41,7 @@ with open(config_file_name, encoding="utf-8") as config_file:
 
 # Extract chat URLs and keywords from the config
 chat_urls = config['chats']
+developers = config['developers']
 
 keyword_group_1 = set(config['keyword_group_1'])
 keyword_group_2 = set(config['keyword_group_2'])
@@ -147,6 +148,21 @@ async def signal_handler(sig, frame):
         await debug(client, "Freegan has stopped", INFO)
         client.disconnect()
 
+async def check(client):
+    dialogs = [f'https://t.me/{dialog.draft.entity.username}' async for dialog in client.iter_dialogs() if
+               dialog.is_channel and dialog.draft.entity.username]
+    for chat in chat_urls:
+        if chat not in dialogs:
+            try:
+                await client(functions.channels.JoinChannelRequest(chat))
+            except errors.ChannelsTooMuchError:
+                await client.send_message(chat_send_to,
+                                          f"{developers}, I've joined too many channels and I can't join{chat}")
+            except errors.InviteRequestSentError:
+                await client.send_message(chat_send_to, f"{developers}, a request has been sent to join {chat}")
+            except errors.ChannelPrivateError:
+                await client.send_message(chat_send_to, f"{developers}, there is no permission to access {chat}")
+
 async def run_client():
     global client
     client = TelegramClient('catebi_freegan', api_id, api_hash)
@@ -154,6 +170,7 @@ async def run_client():
     client.add_event_handler(lambda event: new_message_listener(client, event), events.NewMessage(chats=chat_urls))
 
     async with client:
+        await check(client)
         try:
             await debug(client, "Freegan has started", INFO)
             await client.run_until_disconnected()

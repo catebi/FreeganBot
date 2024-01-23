@@ -2,6 +2,8 @@ chats:
   - https://t.me/catebitest01
   - https://t.me/catebitest02
 
+developers: "@lejafo"
+
 keyword_group_1:
   - 'ампула'
   - 'бентонит'
@@ -87,3 +89,5 @@ filter_keyword_group_4:
   - кот
   - собака
   - собачья
+
+
