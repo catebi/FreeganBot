@@ -162,6 +162,11 @@ async def check(client):
                 await client.send_message(chat_send_to, f"{developers}, a request has been sent to join {chat}")
             except errors.ChannelPrivateError:
                 await client.send_message(chat_send_to, f"{developers}, there is no permission to access {chat}")
+            except errors.ChannelInvalidError as e:
+                await client.send_message(chat_send_to, f"{developers}, {e} {chat}")
+            except BaseException as e:
+                await client.send_message(chat_send_to, f"{developers}, {e} {chat}")
+                chat_urls.remove(chat)
 
 async def run_client():
     global client
