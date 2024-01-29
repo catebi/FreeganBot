@@ -136,7 +136,7 @@ async def debug(client, message, level=DEBUG):
             logging.critical(formatted_message)
 
         # Send the message using the provided Telegram client
-        await client.send_message(chat_send_to, formatted_message, reply_to=topic_id)
+        await client.send_message(chat_send_to, f'{developers}, {formatted_message}', reply_to=topic_id)
 
 def get_current_time():
     """ Returns the current time formatted as HH:MM:SS.mmm """
@@ -185,7 +185,7 @@ async def run_client():
         finally:
             # check if client is disconnected
             if client.is_connected():
-                await client.send_message(chat_send_to, "strange thing happened", reply_to=topic_id)
+                await client.send_message(chat_send_to, f'{developers}, strange thing happened', reply_to=topic_id)
                 client.disconnect()
 
 async def main():
