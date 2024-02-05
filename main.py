@@ -41,8 +41,8 @@ with open(config_file_name, encoding="utf-8") as config_file:
 
 # Extract chat URLs and keywords from the config
 chat_urls = config['chats']
-developers = config['developers']
-topic_id = config['topic']
+developers = config['sys_logging']['developers']
+topic_id = config['sys_logging']['topic_id']
 
 keyword_group_1 = set(config['keyword_group_1'])
 keyword_group_2 = set(config['keyword_group_2'])
@@ -136,7 +136,7 @@ async def debug(client, message, level=DEBUG):
             logging.critical(formatted_message)
 
         # Send the message using the provided Telegram client
-        await client.send_message(chat_send_to, f'{developers}, {formatted_message}', reply_to=topic_id)
+        await client.send_message(chat_send_to, f'{developers}, {formatted_message}', comment_to=topic_id)
 
 def get_current_time():
     """ Returns the current time formatted as HH:MM:SS.mmm """
@@ -157,15 +157,15 @@ async def check(client):
             try:
                 await client(functions.channels.JoinChannelRequest(chat))
             except errors.ChannelsTooMuchError:
-                await client.send_message(chat_send_to, f"{developers}, I've joined too many channels and I can't join{chat}", reply_to=topic_id)
+                await debug(client, f"I've joined too many channels and I can't join{chat}", ERROR)
             except errors.InviteRequestSentError:
-                await client.send_message(chat_send_to, f"{developers}, a request has been sent to join {chat}", reply_to=topic_id)
+                await debug(client, f"a request has been sent to join {chat}", INFO)
             except errors.ChannelPrivateError:
-                await client.send_message(chat_send_to, f"{developers}, there is no permission to access {chat}", reply_to=topic_id)
+                await debug(client, f"there is no permission to access {chat}", ERROR)
             except errors.ChannelInvalidError as e:
-                await client.send_message(chat_send_to, f"{developers}, {e} {chat}", reply_to=topic_id)
+                await debug(client, f"{e} {chat}", ERROR)
             except BaseException as e:
-                await client.send_message(chat_send_to, f"{developers}, {e} {chat}", reply_to=topic_id)
+                await debug(client, f"{e} {chat}", ERROR)
                 chat_urls.remove(chat)
 
 async def run_client():
@@ -185,9 +185,8 @@ async def run_client():
         finally:
             # check if client is disconnected
             if client.is_connected():
-                await client.send_message(chat_send_to, f'{developers}, strange thing happened', reply_to=topic_id)
+                await debug(client,  'strange thing happened', ERROR)
                 client.disconnect()
-
 async def main():
     signal.signal(signal.SIGTERM, lambda sig, frame: asyncio.create_task(signal_handler(sig, frame)))
     await run_client()
