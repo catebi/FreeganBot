@@ -22,9 +22,10 @@ chats:
   - https://t.me/Georgia_Avito
   - https://t.me/barter_ge
 
-developers: "@lejafo"
+sys_logging:
+  developers: "@lejafo"
+  topic_id: 2693
 
-topic: 2693
 
 keyword_group_1:
   - 'ампула'
