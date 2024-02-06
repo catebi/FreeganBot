@@ -2,7 +2,10 @@ chats:
   - https://t.me/catebitest01
   - https://t.me/catebitest02
 
-developers: "@lejafo"
+sys_logging:
+   developers: "@lejafo"
+   topic_id: 2693
+
 
 keyword_group_1:
   - 'ампула'
