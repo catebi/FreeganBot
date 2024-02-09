@@ -150,6 +150,7 @@ async def signal_handler(sig, frame):
         client.disconnect()
 
 async def check(client):
+    join_chats = []
     dialogs = [f'https://t.me/{dialog.draft.entity.username}' async for dialog in client.iter_dialogs() if
                dialog.is_channel and dialog.draft.entity.username]
     for chat in chat_urls:
@@ -157,16 +158,22 @@ async def check(client):
             try:
                 await client(functions.channels.JoinChannelRequest(chat))
             except errors.ChannelsTooMuchError:
-                await debug(client, f"I've joined too many channels and I can't join{chat}", ERROR)
+                await debug(client, f"I've joined too many channels", ERROR)
+                join_chats.append(chat)
             except errors.InviteRequestSentError:
                 await debug(client, f"a request has been sent to join {chat}", INFO)
-            except errors.ChannelPrivateError:
-                await debug(client, f"there is no permission to access {chat}", ERROR)
+                join_chats.append(chat)
+            except errors.ChannelPrivateError as e:
+                await debug(client, e, ERROR)
+                join_chats.append(chat)
             except errors.ChannelInvalidError as e:
-                await debug(client, f"{e} {chat}", ERROR)
+                await debug(client, e, ERROR)
+                join_chats.append(chat)
             except BaseException as e:
-                await debug(client, f"{e} {chat}", ERROR)
                 chat_urls.remove(chat)
+                join_chats.append(chat)
+                await debug(client, e, ERROR)
+    await debug(client, f'need to join the chats:\n{'\n'.join(join_chats)}', INFO)
 
 async def run_client():
     global client
