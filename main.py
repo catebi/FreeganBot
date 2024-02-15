@@ -174,7 +174,9 @@ async def check(client):
                 chat_urls.remove(chat)
                 join_chats.append(chat)
                 await debug(client, e, ERROR)
-    await debug(client, f'need to join the chats:\n{'\n'.join(join_chats)}', INFO)
+
+    chats_to_join = '\n'.join(join_chats)
+    await debug(client, f'need to join the chats:\n{chats_to_join}', INFO)
 
 async def run_client():
     global client
