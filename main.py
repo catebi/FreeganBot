@@ -48,6 +48,7 @@ keyword_group_1 = set(config['keyword_group_1'])
 keyword_group_2 = set(config['keyword_group_2'])
 keyword_group_3 = set(config['keyword_group_3'])
 keyword_group_4 = set(config['keyword_group_4'])
+
 filter_keyword_group_2 = set(config['filter_keyword_group_2'])
 filter_keyword_group_3 = set(config['filter_keyword_group_3'])
 filter_keyword_group_4 = set(config['filter_keyword_group_4'])
