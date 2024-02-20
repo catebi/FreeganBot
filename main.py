@@ -27,15 +27,14 @@ LEVEL_NAMES = {
 }
 
 # Load environment variables from .env file
-#load_dotenv()
+load_dotenv()
 
-#env = os.getenv('ENV', 'dev')  # Default to 'prod' if ENV is not set
-config_file_name =  'config.yaml'
+env = os.getenv('ENV', 'dev')  # Default to 'prod' if ENV is not set
+config_file_name = 'config.dev.yaml' if env == 'dev' else 'config.yaml'
 
-api_id = 24661785 #int(os.getenv('TELEGRAM_API_ID', 0))
-api_hash = "c5ea237573fc06debb2fc178ca02efe7" #str(os.getenv('TELEGRAM_API_HASH'))
-chat_send_to = "https://t.me/catebitest02"
-
+api_id = int(os.getenv('TELEGRAM_API_ID', 0))
+api_hash = str(os.getenv('TELEGRAM_API_HASH'))
+chat_send_to = str(os.getenv('TELEGRAM_CHAT_SEND_TO'))
 
 # Load the configuration from the YAML file
 with open(config_file_name, encoding="utf-8") as config_file:
@@ -171,7 +170,7 @@ async def check(client):
 
 async def run_client():
     global client
-    client = TelegramClient(r'D:\Users\tk0nik\Catebi\FreeganBot\FreeganBot\catebi_freegan', api_id, api_hash)
+    client = TelegramClient('catebi_freegan', api_id, api_hash)
     # Register your event handlers here
     client.add_event_handler(lambda event: new_message_listener(client, event), events.NewMessage(chats=chat_urls))
 
