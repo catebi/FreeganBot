@@ -8,6 +8,7 @@ import re
 from telethon import TelegramClient, events, errors, functions
 from datetime import datetime
 from lemmatization import lemmatize
+import requests
 
 # Debug level constants
 DEBUG = logging.DEBUG
@@ -26,14 +27,15 @@ LEVEL_NAMES = {
 }
 
 # Load environment variables from .env file
-load_dotenv()
+#load_dotenv()
 
-env = os.getenv('ENV', 'dev')  # Default to 'prod' if ENV is not set
-config_file_name = 'config.dev.yaml' if env == 'dev' else 'config.yaml'
+#env = os.getenv('ENV', 'dev')  # Default to 'prod' if ENV is not set
+config_file_name =  'config.yaml'
 
-api_id = int(os.getenv('TELEGRAM_API_ID', 0))
-api_hash = str(os.getenv('TELEGRAM_API_HASH'))
-chat_send_to = str(os.getenv('TELEGRAM_CHAT_SEND_TO'))
+api_id = 24661785 #int(os.getenv('TELEGRAM_API_ID', 0))
+api_hash = "c5ea237573fc06debb2fc178ca02efe7" #str(os.getenv('TELEGRAM_API_HASH'))
+chat_send_to = "https://t.me/catebitest02"
+
 
 # Load the configuration from the YAML file
 with open(config_file_name, encoding="utf-8") as config_file:
@@ -59,7 +61,7 @@ client = None
 
 async def new_message_listener(client, event):
     # Process the text of the event to get lemmas
-    lemmas = lemmatize(event.text)
+    lemmas = lemmatize(event.text.replace('-', ' '))
 
     # Calculate intersections of lemmas with keyword groups
     intersection_group_1 = lemmas.intersection(keyword_group_1)
@@ -82,6 +84,14 @@ async def new_message_listener(client, event):
         matched_keywords.update(intersection_group_3)
     if intersection_group_4 and intersection_filter_4:
         matched_keywords.update(intersection_group_4)
+
+    archive_post_data = {
+        'originalText':event.text, 
+        'lemmatizedText' : (' ').join(lemmas), 
+        'chatLink': f"https://t.me/{event.chat.username}", 
+        'accepted':bool(matched_keywords)}
+    response = requests.post('https://api.catebi.ge/api/Freegan/SaveMessage', json = archive_post_data, headers={'Content-type':'application/json', 'Accept':'text/plain'})
+    logging.info("%s", response.text)
 
     if matched_keywords:
         # Get the sender of the message
@@ -123,16 +133,7 @@ async def debug(client, message, level=DEBUG):
         formatted_message = f"[{level_name}] {message}"
 
         # Log the message
-        if level == DEBUG:
-            logging.debug(formatted_message)
-        elif level == INFO:
-            logging.info(formatted_message)
-        elif level == WARNING:
-            logging.warning(formatted_message)
-        elif level == ERROR:
-            logging.error(formatted_message)
-        elif level == CRITICAL:
-            logging.critical(formatted_message)
+        logging.log(level, formatted_message)
 
         # Send the message using the provided Telegram client
         await client.send_message(chat_send_to, formatted_message)
@@ -170,7 +171,7 @@ async def check(client):
 
 async def run_client():
     global client
-    client = TelegramClient('catebi_freegan', api_id, api_hash)
+    client = TelegramClient(r'D:\Users\tk0nik\Catebi\FreeganBot\FreeganBot\catebi_freegan', api_id, api_hash)
     # Register your event handlers here
     client.add_event_handler(lambda event: new_message_listener(client, event), events.NewMessage(chats=chat_urls))
 
@@ -191,8 +192,6 @@ async def run_client():
 async def main():
     signal.signal(signal.SIGTERM, lambda sig, frame: asyncio.create_task(signal_handler(sig, frame)))
     await run_client()
-    # loop = asyncio.get_event_loop()
-    # loop.run_until_complete(run_client())
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
