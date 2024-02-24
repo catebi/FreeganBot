@@ -1,4 +1,4 @@
-from spacy.lang.ru import Russian
+from pymorphy3 import MorphAnalyzer
 from spellchecker import SpellChecker
 import string
 
@@ -25,31 +25,22 @@ def lemmatize(text):
         # corrected_text = " ".join(corrected_words)
 
         # Process the text
-        doc = nlp(text_no_punct)
-
+        words = text_no_punct.split()
         # Lemmatize the text and return a set of lemmas
-        return {token.lemma_ for token in doc if token is not None}
+        return {morph.parse(word)[0].normal_form for word in words}
 
     except Exception as e:
         print(f"An error occurred: {e}")
         return set()
 
 # Load Russian language models
-nlp = Russian()
-
-# Adding the lemmatizer component to the pipeline
-lemmatizer = nlp.add_pipe("lemmatizer")
-
-# Add new words to the vocabulary
-nlp_new_words = ['когтеточка', 'мальт-паст', 'веревка', 'габапентин', 'паучи']
-for word in nlp_new_words:
-    nlp.vocab.strings.add(word)  # Add the word to the vocabulary
-    nlp.vocab[word]  # This creates a Lexeme object for the word
+morph = MorphAnalyzer()
 
 # Load russsian spellchecker
 spell = SpellChecker(language='ru')
 
-new_words = ['обработать']
+# Add new words to the vocabulary
+new_words = ['когтеточка', 'мальт-паст', 'веревка', 'габапентин', 'паучи']
 spell.word_frequency.load_words(new_words)
 
 # # Example text
