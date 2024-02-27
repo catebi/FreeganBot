@@ -23,7 +23,9 @@ chats:
   - https://t.me/barter_ge
 
 
-developers: "@tk0nik"
+sys_logging:
+  developers:  "@lejafo"
+  topic_id: 2693
 
 keyword_group_1:
   - 'ампула'
