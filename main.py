@@ -9,7 +9,6 @@ from telethon import TelegramClient, events, errors, functions
 from datetime import datetime
 from lemmatization import lemmatize
 import requests
-import requests
 
 # Debug level constants
 DEBUG = logging.DEBUG
