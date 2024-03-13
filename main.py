@@ -62,71 +62,73 @@ sent_messages_cache = set()
 client = None
 
 async def new_message_listener(client, event):
-    if event.text:
-        # Process the text of the event to get lemmas
-        lemmas = lemmatize(event.text.replace('-', ' '))
+    if not event.text:
+        logging.info('%s%s', event.id, 'empty event.text')
+        return
+    # Process the text of the event to get lemmas
+    lemmas = lemmatize(event.text.replace('-', ' '))
 
-        # Calculate intersections of lemmas with keyword groups
-        intersection_group_1 = lemmas.intersection(keyword_group_1)
-        intersection_group_2 = lemmas.intersection(keyword_group_2)
-        intersection_group_3 = lemmas.intersection(keyword_group_3)
-        intersection_group_4 = lemmas.intersection(keyword_group_4)
+    # Calculate intersections of lemmas with keyword groups
+    intersection_group_1 = lemmas.intersection(keyword_group_1)
+    intersection_group_2 = lemmas.intersection(keyword_group_2)
+    intersection_group_3 = lemmas.intersection(keyword_group_3)
+    intersection_group_4 = lemmas.intersection(keyword_group_4)
 
-        intersection_filter_2 = lemmas.intersection(filter_keyword_group_2)
-        intersection_filter_3 = lemmas.intersection(filter_keyword_group_3)
-        intersection_filter_4 = lemmas.intersection(filter_keyword_group_4)
+    intersection_filter_2 = lemmas.intersection(filter_keyword_group_2)
+    intersection_filter_3 = lemmas.intersection(filter_keyword_group_3)
+    intersection_filter_4 = lemmas.intersection(filter_keyword_group_4)
 
-        matched_keywords = set()
+    matched_keywords = set()
 
-        # Check for matches and update matched_keywords accordingly
-        if intersection_group_1:
-            matched_keywords.update(intersection_group_1)
-        if intersection_group_2 and intersection_filter_2:
-            matched_keywords.update(intersection_group_2)
-        if intersection_group_3 and intersection_filter_3:
-            matched_keywords.update(intersection_group_3)
-        if intersection_group_4 and intersection_filter_4:
-            matched_keywords.update(intersection_group_4)
-        
-        archive_post_data = {
-            'originalText':event.text, 
-            'lemmatizedText' : (' ').join(lemmas), 
-            'chatLink': f"https://t.me/{event.chat.username}/{event.id}", 
-            'accepted':bool(matched_keywords)}
-        response = requests.post('https://api.catebi.ge/api/Freegan/SaveMessage', json = archive_post_data, headers={'Content-type':'application/json', 'Accept':'text/plain'})
+    # Check for matches and update matched_keywords accordingly
+    if intersection_group_1:
+        matched_keywords.update(intersection_group_1)
+    if intersection_group_2 and intersection_filter_2:
+        matched_keywords.update(intersection_group_2)
+    if intersection_group_3 and intersection_filter_3:
+        matched_keywords.update(intersection_group_3)
+    if intersection_group_4 and intersection_filter_4:
+        matched_keywords.update(intersection_group_4)
+    
+    archive_post_data = {
+        'originalText':event.text, 
+        'lemmatizedText' : (' ').join(lemmas), 
+        'chatLink': f"https://t.me/{event.chat.username}/{event.id}", 
+        'accepted':bool(matched_keywords)}
+    response = requests.post('https://api.catebi.ge/api/Freegan/SaveMessage', json = archive_post_data, headers={'Content-type':'application/json', 'Accept':'text/plain'})
 
-        if matched_keywords:
-            # Get the sender of the message
-            sender = await event.get_sender()
+    if matched_keywords:
+        # Get the sender of the message
+        sender = await event.get_sender()
 
-            sender_username = getattr(sender, 'username', None)
-            display_username = f"@{sender_username}" if sender_username else "an anonymous user"
+        sender_username = getattr(sender, 'username', None)
+        display_username = f"@{sender_username}" if sender_username else "an anonymous user"
 
-            sanitized_event_text = re.sub(r'\s+', '', event.text)
-            message_hash = hash(f"{display_username}_{sanitized_event_text}")
+        sanitized_event_text = re.sub(r'\s+', '', event.text)
+        message_hash = hash(f"{display_username}_{sanitized_event_text}")
 
-            photos = event.media
+        photos = event.media
 
-            # Check if the message has already been sent
-            if message_hash not in sent_messages_cache:
-                if event.grouped_id:
-                    photos = [photos]
-                    async for mess in client.iter_messages(event.chat.username, min_id=event.id, max_id=event.id + 10, reverse=True):
-                        if mess.grouped_id == event.grouped_id:
-                            photos.append(mess.media)
-                        else:
-                            break
-                matched_keywords_str = ', '.join(matched_keywords)
-                current_time = get_current_time()
-                message = (f"**{matched_keywords_str}**\n\n{event.text}\n\n"
-                           f"[t.me/{event.chat.username}/{event.id}](t.me/{event.chat.username}/{event.id})\n"
-                           f"user: {display_username}\n\n"
-                           f"__time__: `{current_time}`\n"
-                           f"__hash__: `{message_hash}`\n")
-                await client.send_message(chat_send_to, message, file=photos)
+        # Check if the message has already been sent
+        if message_hash not in sent_messages_cache:
+            if event.grouped_id:
+                photos = [photos]
+                async for mess in client.iter_messages(event.chat.username, min_id=event.id, max_id=event.id + 10, reverse=True):
+                    if mess.grouped_id == event.grouped_id:
+                        photos.append(mess.media)
+                    else:
+                        break
+            matched_keywords_str = ', '.join(matched_keywords)
+            current_time = get_current_time()
+            message = (f"**{matched_keywords_str}**\n\n{event.text}\n\n"
+                        f"[t.me/{event.chat.username}/{event.id}](t.me/{event.chat.username}/{event.id})\n"
+                        f"user: {display_username}\n\n"
+                        f"__time__: `{current_time}`\n"
+                        f"__hash__: `{message_hash}`\n")
+            await client.send_message(chat_send_to, message, file=photos)
 
-                sent_messages_cache.add(message_hash)
-                await asyncio.sleep(0.3)  # Delay for 100 milliseconds
+            sent_messages_cache.add(message_hash)
+            await asyncio.sleep(0.3)  # Delay for 100 milliseconds
 
 async def debug(client, message, level=DEBUG):
     # Check the current logging level
