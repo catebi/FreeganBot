@@ -191,7 +191,7 @@ async def run_client():
         finally:
             # check if client is disconnected
             if client.is_connected():
-                await client.send_message(chat_send_to, "strange thing happened")
+                await debug(client,  'strange thing happened', ERROR)
                 client.disconnect()
 
 
