@@ -1,6 +1,4 @@
 chats:
-  # - https://t.me/catebitest01 # for testing purposes
-  # - https://t.me/catebitest02 # for testing purposes
   - https://t.me/baraholka_tbi
   - https://t.me/avito_baraholka_tbilisi
   - https://t.me/baraholka_tbilisi
@@ -10,9 +8,6 @@ chats:
   - https://t.me/freegantbilisi
   - https://t.me/Tbilisi_market_bg
   - https://t.me/rabbitsbaraholka
-  # - https://t.me/tbilisi_otdam_darom # [ERROR] No user has "tbilisi_otdam_darom" as username
-  # - https://t.me/expatstbilisi  # [INFO] need to join the chats: https://t.me/expatstbilisi
-  # - https://t.me/tbilisi_rus  # [ERROR] Invalid channel object. Make sure to pass the right types, for instance making sure that the request is designed for channels or otherwise look for a different one more suited (caused by JoinChannelRequest)
   - https://t.me/tbilisi_360
   - https://t.me/tbilisio
   - https://t.me/gryzia_chat_ads
