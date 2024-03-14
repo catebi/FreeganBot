@@ -1,6 +1,4 @@
 chats:
-  - https://t.me/catebitest01 # for testing purposes
-  - https://t.me/catebitest02 # for testing purposes
   - https://t.me/baraholka_tbi
   - https://t.me/avito_baraholka_tbilisi
   - https://t.me/baraholka_tbilisi
@@ -10,9 +8,6 @@ chats:
   - https://t.me/freegantbilisi
   - https://t.me/Tbilisi_market_bg
   - https://t.me/rabbitsbaraholka
-  - https://t.me/tbilisi_otdam_darom
-  - https://t.me/expatstbilisi
-  - https://t.me/tbilisi_rus
   - https://t.me/tbilisi_360
   - https://t.me/tbilisio
   - https://t.me/gryzia_chat_ads
@@ -21,13 +16,11 @@ chats:
   - https://t.me/tbilisi_avito
   - https://t.me/Georgia_Avito
   - https://t.me/barter_ge
-  - https://t.me/Tbilisiprofi
-  - https://t.me/ruadboard_tbs
+
 
 sys_logging:
-  developers: "@lejafo"
+  developers:  "@lejafo"
   topic_id: 2693
-
 
 keyword_group_1:
   - 'ампула'
@@ -114,4 +107,3 @@ filter_keyword_group_4:
   - кот
   - собака
   - собачья
-
