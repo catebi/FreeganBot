@@ -40,11 +40,11 @@ chat_send_to = str(os.getenv('TELEGRAM_CHAT_SEND_TO'))
 with open(config_file_name, encoding="utf-8") as config_file:
     config = yaml.safe_load(config_file)
 
-# Extract chat URLs and keywords from the config
-chat_urls = config['chats']
+# Extract keywords from the config
 developers = config['sys_logging']['developers']
 topic_id = config['sys_logging']['topic_id']
 
+chat_urls = list(map(lambda x: x['url'], requests.get('https://api.catebi.ge/api/freegan/getdonationchats').json()))
 
 keyword_group_1 = set(config['keyword_group_1'])
 keyword_group_2 = set(config['keyword_group_2'])
