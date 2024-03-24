@@ -105,9 +105,9 @@ async def new_message_listener(client, event):
         display_username = f"@{sender_username}" if sender_username else "an anonymous user"
 
         sanitized_event_text = re.sub(r'\s+', '', event.text)
-        message_hash = hash(f"{display_username}_{sanitized_event_text}")
+        message_hash = hash(sanitized_event_text)
 
-        photos = event.media
+        photos = event.media              
 
         # Check if the message has already been sent
         if message_hash not in sent_messages_cache:
@@ -138,10 +138,8 @@ async def debug(client, message, level=DEBUG):
 
         # Log the message
         logging.log(level, formatted_message)
-        logging.log(level, formatted_message)
 
         # Send the message using the provided Telegram client
-        await client.send_message(chat_send_to, formatted_message)
         await client.send_message(chat_send_to, formatted_message)
 
 def get_current_time():
@@ -178,7 +176,7 @@ async def check(client):
 
 async def run_client():
     global client
-    client = TelegramClient('catebi_freegan', api_id, api_hash)
+    client = TelegramClient('catebi_freegan', api_id, api_hash, sequential_updates=True)
     # Register your event handlers here
     client.add_event_handler(lambda event: new_message_listener(client, event), events.NewMessage(chats=chat_urls))
     
