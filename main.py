@@ -66,7 +66,7 @@ async def new_message_listener(client, event):
         logging.info('%s%s', event.id, 'empty event.text')
         return
     # Process the text of the event to get lemmas
-    lemmas = lemmatize(event.text.replace('-', ' '))
+    lemmas = lemmatize(event.text.replace('-', ''))
 
     # Calculate intersections of lemmas with keyword groups
     intersection_group_1 = lemmas.intersection(keyword_group_1)
@@ -89,11 +89,11 @@ async def new_message_listener(client, event):
         matched_keywords.update(intersection_group_3)
     if intersection_group_4 and intersection_filter_4:
         matched_keywords.update(intersection_group_4)
-    
+
     archive_post_data = {
-        'originalText':event.text, 
-        'lemmatizedText' : (' ').join(lemmas), 
-        'chatLink': f"https://t.me/{event.chat.username}/{event.id}", 
+        'originalText':event.text,
+        'lemmatizedText' : (' ').join(lemmas),
+        'chatLink': f"https://t.me/{event.chat.username}/{event.id}",
         'accepted':bool(matched_keywords)}
     response = requests.post('https://api.catebi.ge/api/Freegan/SaveMessage', json = archive_post_data, headers={'Content-type':'application/json', 'Accept':'text/plain'})
 
@@ -107,7 +107,7 @@ async def new_message_listener(client, event):
         sanitized_event_text = re.sub(r'\s+', '', event.text)
         message_hash = hash(sanitized_event_text)
 
-        photos = event.media              
+        photos = event.media
 
         # Check if the message has already been sent
         if message_hash not in sent_messages_cache:
@@ -179,7 +179,7 @@ async def run_client():
     client = TelegramClient('catebi_freegan', api_id, api_hash, sequential_updates=True)
     # Register your event handlers here
     client.add_event_handler(lambda event: new_message_listener(client, event), events.NewMessage(chats=chat_urls))
-    
+
     async with client:
         await check(client)
         try:
