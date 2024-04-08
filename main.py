@@ -6,6 +6,7 @@ import logging
 import yaml
 import re
 from telethon import TelegramClient, events, errors, functions
+from telethon.tl.types import UpdateMessageReactions
 from datetime import datetime
 from lemmatization import lemmatize
 import requests
@@ -42,7 +43,7 @@ with open(config_file_name, encoding="utf-8") as config_file:
 
 # Extract keywords from the config
 developers = config['sys_logging']['developers']
-topic_id = config['sys_logging']['topic_id']
+system_topic_id = config['sys_logging']['topic_id']
 
 chat_urls = config['chats'] if env == 'dev' else list(map(lambda x: x['url'], requests.get('https://api.catebi.ge/api/freegan/getdonationchats').json()))
 
@@ -53,7 +54,6 @@ keyword_group_4 = set(config['keyword_group_4'])
 filter_keyword_group_2 = set(config['filter_keyword_group_2'])
 filter_keyword_group_3 = set(config['filter_keyword_group_3'])
 filter_keyword_group_4 = set(config['filter_keyword_group_4'])
-
 
 # Global set to store hashes of sent messages
 sent_messages_cache = set()
@@ -91,11 +91,11 @@ async def new_message_listener(client, event):
         matched_keywords.update(intersection_group_4)
 
     archive_post_data = {
-        'originalText':event.text,
-        'lemmatizedText' : (' ').join(lemmas),
+        'originalText': event.text,
+        'lemmatizedText': (' ').join(lemmas),
         'chatLink': f"https://t.me/{event.chat.username}/{event.id}",
-        'accepted':bool(matched_keywords)}
-    response = requests.post('https://api.catebi.ge/api/Freegan/SaveMessage', json = archive_post_data, headers={'Content-type':'application/json', 'Accept':'text/plain'})
+        'accepted': bool(matched_keywords)}
+    response = requests.post('https://api.catebi.ge/api/Freegan/SaveMessage', json=archive_post_data, headers={'Content-type': 'application/json', 'Accept': 'text/plain'})
 
     if matched_keywords:
         # Get the sender of the message
@@ -121,14 +121,39 @@ async def new_message_listener(client, event):
             matched_keywords_str = ', '.join(matched_keywords)
             current_time = get_current_time()
             message = (f"**{matched_keywords_str}**\n\n{event.text}\n\n"
-                        f"[t.me/{event.chat.username}/{event.id}](t.me/{event.chat.username}/{event.id})\n"
-                        f"user: {display_username}\n\n"
-                        f"__time__: `{current_time}`\n"
-                        f"__hash__: `{message_hash}`\n")
-            await client.send_message(chat_send_to, message, file=photos)
-
+                       f"[t.me/{event.chat.username}/{event.id}](t.me/{event.chat.username}/{event.id})\n"
+                       f"user: {display_username}\n\n"
+                       f"__time__: `{current_time}`\n"
+                       f"__hash__: `{message_hash}`\n")
+            res = await client.send_message(chat_send_to, message, file=photos)
+            data = {'messageId': res.id,
+                    'content': event.text,
+                    'likeCount': 0,
+                    'dislikeCount': 0,
+                    }
+            requests.post('https://api.catebi.ge/api/Freegan/SaveReaction', json=data,
+                          headers={'Content-type': 'application/json'})
             sent_messages_cache.add(message_hash)
             await asyncio.sleep(0.3)  # Delay for 100 milliseconds
+
+
+async def reaction_listener(event):
+    if (event.top_msg_id and event.top_msg_id != system_topic_id):
+        like_count = dislike_count = 0
+        if event.reactions.results:
+            for react in event.reactions.results:
+                if react.reaction.emoticon == '👍':
+                    like_count = react.count
+                else:
+                    dislike_count = react.count
+        data = {'messageId': event.msg_id,
+                'content': '',
+                'likeCount': like_count,
+                'dislikeCount': dislike_count,
+                }
+        requests.post('https://api.catebi.ge/api/Freegan/SaveReaction', json=data,
+                      headers={'Content-type': 'application/json'})
+
 
 async def debug(client, message, level=DEBUG):
     # Check the current logging level
@@ -179,6 +204,7 @@ async def run_client():
     client = TelegramClient('catebi_freegan', api_id, api_hash, sequential_updates=True)
     # Register your event handlers here
     client.add_event_handler(lambda event: new_message_listener(client, event), events.NewMessage(chats=chat_urls))
+    client.add_event_handler(lambda event: reaction_listener(event), events.Raw(UpdateMessageReactions))
 
     async with client:
         await check(client)
@@ -187,11 +213,11 @@ async def run_client():
             await client.run_until_disconnected()
         except Exception as e:
             # Log and send a message if an error occurs
-            await debug(client,  f"An unexpected error occurred: {e}", ERROR)
+            await debug(client, f"An unexpected error occurred: {e}", ERROR)
         finally:
             # check if client is disconnected
             if client.is_connected():
-                await debug(client,  'strange thing happened', ERROR)
+                await debug(client, 'strange thing happened', ERROR)
                 client.disconnect()
 
 
