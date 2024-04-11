@@ -51,9 +51,11 @@ keyword_group_1 = set(config['keyword_group_1'])
 keyword_group_2 = set(config['keyword_group_2'])
 keyword_group_3 = set(config['keyword_group_3'])
 keyword_group_4 = set(config['keyword_group_4'])
+keyword_group_5 = set(config['keyword_group_5'])
 filter_keyword_group_2 = set(config['filter_keyword_group_2'])
 filter_keyword_group_3 = set(config['filter_keyword_group_3'])
 filter_keyword_group_4 = set(config['filter_keyword_group_4'])
+filter_stopword_group_5 = set(config['filter_stopword_group_5'])
 
 # Global set to store hashes of sent messages
 sent_messages_cache = set()
@@ -73,10 +75,12 @@ async def new_message_listener(client, event):
     intersection_group_2 = lemmas.intersection(keyword_group_2)
     intersection_group_3 = lemmas.intersection(keyword_group_3)
     intersection_group_4 = lemmas.intersection(keyword_group_4)
+    intersection_group_5 = lemmas.intersection(keyword_group_5)
 
     intersection_filter_2 = lemmas.intersection(filter_keyword_group_2)
     intersection_filter_3 = lemmas.intersection(filter_keyword_group_3)
     intersection_filter_4 = lemmas.intersection(filter_keyword_group_4)
+    intersection_stop_filter_5 = lemmas.intersection(filter_stopword_group_5)
 
     matched_keywords = set()
 
@@ -89,6 +93,8 @@ async def new_message_listener(client, event):
         matched_keywords.update(intersection_group_3)
     if intersection_group_4 and intersection_filter_4:
         matched_keywords.update(intersection_group_4)
+    if intersection_group_5 and not intersection_stop_filter_5:
+        matched_keywords.update(intersection_group_5)
 
     archive_post_data = {
         'originalText': event.text,
