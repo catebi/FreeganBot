@@ -132,7 +132,8 @@ async def new_message_listener(client, event):
                        f"__time__: `{current_time}`\n"
                        f"__hash__: `{message_hash}`\n")
             res = await client.send_message(chat_send_to, message, file=photos)
-            data = {'messageId': res.id,
+            new_message_id = res[0].id if isinstance(photos, list) else res.id
+            data = {'messageId': new_message_id,
                     'content': event.text,
                     'likeCount': 0,
                     'dislikeCount': 0,
