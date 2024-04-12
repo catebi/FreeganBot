@@ -45,17 +45,21 @@ with open(config_file_name, encoding="utf-8") as config_file:
 developers = config['sys_logging']['developers']
 system_topic_id = config['sys_logging']['topic_id']
 
-chat_urls = config['chats'] if env == 'dev' else list(map(lambda x: x['url'], requests.get('https://api.catebi.ge/api/freegan/getdonationchats').json()))
+chat_urls = config['chats'] if env == 'dev' else list(
+    map(lambda x: x['url'], requests.get('https://api.catebi.ge/api/freegan/getdonationchats').json()))
 
-keyword_group_1 = set(config['keyword_group_1'])
-keyword_group_2 = set(config['keyword_group_2'])
-keyword_group_3 = set(config['keyword_group_3'])
-keyword_group_4 = set(config['keyword_group_4'])
-keyword_group_5 = set(config['keyword_group_5'])
-filter_keyword_group_2 = set(config['filter_keyword_group_2'])
-filter_keyword_group_3 = set(config['filter_keyword_group_3'])
-filter_keyword_group_4 = set(config['filter_keyword_group_4'])
-filter_stopword_group_5 = set(config['filter_stopword_group_5'])
+# retrieve groups with filters from config
+groups_data = {}
+for group in config['groups']:
+    group_name = group['name']
+    keywords = set(group['keywords'])
+    include_keywords = set(group.get('include_keywords', []))
+    exclude_keywords = set(group.get('exclude_keywords', []))
+    groups_data[group_name] = {
+        'keywords': keywords,
+        'include_keywords': include_keywords,
+        'exclude_keywords': exclude_keywords
+    }
 
 # Global set to store hashes of sent messages
 sent_messages_cache = set()
@@ -70,38 +74,26 @@ async def new_message_listener(client, event):
     # Process the text of the event to get lemmas
     lemmas = lemmatize(event.text.replace('-', ''))
 
-    # Calculate intersections of lemmas with keyword groups
-    intersection_group_1 = lemmas.intersection(keyword_group_1)
-    intersection_group_2 = lemmas.intersection(keyword_group_2)
-    intersection_group_3 = lemmas.intersection(keyword_group_3)
-    intersection_group_4 = lemmas.intersection(keyword_group_4)
-    intersection_group_5 = lemmas.intersection(keyword_group_5)
-
-    intersection_filter_2 = lemmas.intersection(filter_keyword_group_2)
-    intersection_filter_3 = lemmas.intersection(filter_keyword_group_3)
-    intersection_filter_4 = lemmas.intersection(filter_keyword_group_4)
-    intersection_stop_filter_5 = lemmas.intersection(filter_stopword_group_5)
-
     matched_keywords = set()
 
-    # Check for matches and update matched_keywords accordingly
-    if intersection_group_1:
-        matched_keywords.update(intersection_group_1)
-    if intersection_group_2 and intersection_filter_2:
-        matched_keywords.update(intersection_group_2)
-    if intersection_group_3 and intersection_filter_3:
-        matched_keywords.update(intersection_group_3)
-    if intersection_group_4 and intersection_filter_4:
-        matched_keywords.update(intersection_group_4)
-    if intersection_group_5 and not intersection_stop_filter_5:
-        matched_keywords.update(intersection_group_5)
+    # Calculate intersections and apply rules based on the new groups structure
+    for name, info in groups_data.items():
+        intersection_keywords = lemmas.intersection(info['keywords'])
+        intersection_include = lemmas.intersection(info['include_keywords'])
+        intersection_exclude = lemmas.intersection(info['exclude_keywords'])
+
+        if intersection_keywords:
+            if (info['include_keywords'] and intersection_include) or (
+                    info['exclude_keywords'] and not intersection_exclude):
+                matched_keywords.update(intersection_keywords)
 
     archive_post_data = {
         'originalText': event.text,
         'lemmatizedText': (' ').join(lemmas),
         'chatLink': f"https://t.me/{event.chat.username}/{event.id}",
         'accepted': bool(matched_keywords)}
-    response = requests.post('https://api.catebi.ge/api/Freegan/SaveMessage', json=archive_post_data, headers={'Content-type': 'application/json', 'Accept': 'text/plain'})
+    response = requests.post('https://api.catebi.ge/api/Freegan/SaveMessage', json=archive_post_data,
+                             headers={'Content-type': 'application/json', 'Accept': 'text/plain'})
 
     if matched_keywords:
         # Get the sender of the message
@@ -119,7 +111,8 @@ async def new_message_listener(client, event):
         if message_hash not in sent_messages_cache:
             if event.grouped_id:
                 photos = [photos]
-                async for mess in client.iter_messages(event.chat.username, min_id=event.id, max_id=event.id + 10, reverse=True):
+                async for mess in client.iter_messages(event.chat.username, min_id=event.id, max_id=event.id + 10,
+                                                       reverse=True):
                     if mess.grouped_id == event.grouped_id:
                         photos.append(mess.media)
                     else:
