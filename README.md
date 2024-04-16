@@ -63,81 +63,48 @@ Telegram bot to search for donations in chats and channels
 - The user or bot must be a member of the group from which it is planned to send messages.
 
 ## Bot Config
+Bot config has two versions: `config.dev.yaml` for development environment and `config.yaml` for production environment.
 
+
+Config structure:
+   ```yaml
+   chats:
+    - <>
+    - <>
+
+  sys_logging:
+     developers: "@<>"
+     topic_id: <>
+
+  groups:
+    - name: 'group 1'
+      keywords:
+         - 'миска'
+      include_keywords:
+         - 'кот'
+      exclude_keywords:
+         - 'купить'
+   ```
+
+Configs keys descriptions:
 - `chats` (only in config.dev.yaml for testing purposes): list of links where bot looks for donation messages. On the prod environment, donation chats list is returned from catebi API request.
 - `sys_logging`: settings for bot logs, where `developers` - list of usernames to ping about some logs, `topic_id`- Telegram chat topic where bot sends logs to
-- `groups`: a bunch of keywords on a specific sub-topic with filters, where `name` - group name, `keywords` - list of keywords about what we are looking for in donation messages, `include_keywords` - list of keywords that must be in a message to filter irrelevant occurrences of `keywords`, `exclude_keywords` - list of keywords that must NOT be in a donation message. If a message contains both `include_keywords` and `exclude_keywords` entries, `exclude_keywords` entry has the highest priority so this message must NOT be sent
+- `groups`: a bunch of keywords on a specific sub-topic with filters, where `name` - group name, `keywords` - list of keywords about what we are looking for in donation messages, `include_keywords` - list of keywords that must be in a message to filter irrelevant occurrences of `keywords`, `exclude_keywords` - list of keywords that must NOT be in a donation message. 
 
-```yaml
-chats:                         # only for dev environment
-  - https://t.me/catebitest01  # for testing purposes
-  - https://t.me/catebitest02  # for testing purposes
 
-sys_logging:
-  developers:  "@lejafo"
-  topic_id: 2693
- 
-groups:
-  - name: 'main group'
-    keywords:
-      - 'ампула'
-      - 'бентонит'
-      - 'бетонит'
-      - 'верёвка'
-      - 'вольер'
-      - 'габа'
-      - 'габапентин'
-      - 'джут'
-      - 'джутовый'
-      - 'дралка'
-      - 'инъекция'
-      - 'когтедерка'
-      - 'когтедралка'
-      - 'когтеточка'
-      - 'консервы'
-      - 'корм'
-      - 'кот'
-      - 'кошачий'
-      - 'кошка'
-      - 'лежак'
-      - 'лежанка'
-      - 'лотков'
-      - 'лоток'
-      - 'мальтпаста'
-      - 'мальт-паста'
-      - 'молоко'
-      - 'паучить'
-      - 'паштет'
-      - 'пелёнка'
-      - 'поводок'
-      - 'подстилка'
-      - 'подушечка'
-      - 'поилка'
-      - 'тоннель'
-      - 'точилка'
-      - 'туннель'
-      - 'укол'
-      - 'фонтанчик'
-      - 'шлейка'
-      - 'шприц'
-    include_keywords:
-      - 'животное'
-      - 'кошачий'
-      - 'кошка'
-      - 'кот'
-  - name: 'air conditioner group'
-    keywords:
-      - 'кондиционер'
-      - 'кондей'
-      - 'сплитсистема'
-      - 'сплит-система'
-    exclude_keywords:
-      - 'аренда'
-      - 'купить'
-      - 'шампунь'
-      - 'сдаваться'
-      - 'сдавать'
-      - 'сдать'
-      - 'трансфер'
-      - 'визаран'
+If a message contains both `include_keywords` and `exclude_keywords` entries, `exclude_keywords` entry has the highest priority so this message must NOT be sent.
+
+Important! Content in `include_keywords` and `exclude_keywords` should be in lemmatized form. You can get word lemmatization form in `freegan_nlp.ipynb`. just insert text for lemmatization in cell with text variable:
+```python
+text = "продаю"
+```   
+And run all cells in notebook. Look for this cell:
+```python
+lemmatized_text = process_text(text)
+lemmatized_text
 ```
+This cell output shows the word lemmatization form. For instance:
+```
+'продавать'
+```
+
