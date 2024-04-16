@@ -69,12 +69,12 @@ Bot config has two versions: `config.dev.yaml` for development environment and `
 Config structure:
    ```yaml
    chats:
-    - <>
-    - <>
+    - <telegramChatUrl1>
+    - <telegramChatUrl2>
 
   sys_logging:
-     developers: "@<>"
-     topic_id: <>
+     developers: "@<telegramAccount1Name>, @<telegramAccount2Name>"
+     topic_id: <telegramChatTopicId>
 
   groups:
     - name: 'group 1'
