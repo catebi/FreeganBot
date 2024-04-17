@@ -10,22 +10,12 @@ from telethon.tl.types import UpdateMessageReactions
 from datetime import datetime
 from lemmatization import lemmatize
 import requests
+from logging import DEBUG, INFO, WARNING, ERROR, CRITICAL
 
-# Debug level constants
-DEBUG = logging.DEBUG
-INFO = logging.INFO
-WARNING = logging.WARNING
-ERROR = logging.ERROR
-CRITICAL = logging.CRITICAL
+CHAT_LOGGING_LEVEL = INFO
+CONSOLE_LOGGING_LEVEL = DEBUG
 
-# Debug level names
-LEVEL_NAMES = {
-    DEBUG: "DEBUG",
-    INFO: "INFO",
-    WARNING: "WARNING",
-    ERROR: "ERROR",
-    CRITICAL: "CRITICAL"
-}
+API_SAVEMESSAGE_METHOD = 'https://api.catebi.ge/api/Freegan/SaveMessage'
 
 # Load environment variables from .env file
 load_dotenv()
@@ -68,7 +58,7 @@ async def new_message_listener(client, event):
         logging.info('%s%s', event.id, 'empty event.text')
         return
     # Process the text of the event to get lemmas
-    lemmas = lemmatize(event.text.replace('-', ''))
+    lemmas = lemmatize(event.text + ' ' + event.text.replace('-', ''))
 
     # Calculate intersections of lemmas with keyword groups
     intersection_group_1 = lemmas.intersection(keyword_group_1)
@@ -96,12 +86,7 @@ async def new_message_listener(client, event):
     if intersection_group_5 and not intersection_stop_filter_5:
         matched_keywords.update(intersection_group_5)
 
-    archive_post_data = {
-        'originalText': event.text,
-        'lemmatizedText': (' ').join(lemmas),
-        'chatLink': f"https://t.me/{event.chat.username}/{event.id}",
-        'accepted': bool(matched_keywords)}
-    response = requests.post('https://api.catebi.ge/api/Freegan/SaveMessage', json=archive_post_data, headers={'Content-type': 'application/json', 'Accept': 'text/plain'})
+    post_message_to_db_archive(event.text, (' ').join(lemmas), f"https://t.me/{event.chat.username}/{event.id}", bool(matched_keywords), True)
 
     if matched_keywords:
         # Get the sender of the message
@@ -143,6 +128,24 @@ async def new_message_listener(client, event):
             sent_messages_cache.add(message_hash)
             await asyncio.sleep(0.3)  # Delay for 100 milliseconds
 
+def post_message_to_db_archive(originalText, lemmatizedText, chatLink, accepted, on):
+    if on:
+        archive_post_data = {
+            'originalText': originalText,
+            'lemmatizedText': lemmatizedText,
+            'chatLink': chatLink,
+            'accepted': accepted
+        }
+        try:
+            response = requests.post(API_SAVEMESSAGE_METHOD, json=archive_post_data, headers={'Content-type': 'application/json', 'Accept': 'text/plain'})
+        except requests.RequestException as e:
+            debug(f"An error occurred: {e}", level=ERROR)
+            raise 
+    if response.status_code == 200:
+        logging.debug('response: "%s"', response.text)
+    else:
+        debug(f'{API_SAVEMESSAGE_METHOD} status_code: {response.status_code}', level = ERROR if response.status_code >= 400 else INFO)
+    return response.status_code
 
 async def reaction_listener(event):
     if (event.top_msg_id and event.top_msg_id != system_topic_id):
@@ -162,14 +165,13 @@ async def reaction_listener(event):
                       headers={'Content-type': 'application/json'})
 
 
-async def debug(client, message, level=DEBUG):
+async def debug(message, level=DEBUG):
+    # Log the message
+    logging.log(level, message)
+    
     # Check the current logging level
-    if logging.getLogger().level <= level:
-        level_name = LEVEL_NAMES.get(level, "UNKNOWN")
-        formatted_message = f"[{level_name}] {message}"
-
-        # Log the message
-        logging.log(level, formatted_message)
+    if level >= CHAT_LOGGING_LEVEL:
+        formatted_message = f"[{logging.getLevelName(level)}] {message}"
 
         # Send the message using the provided Telegram client
         await client.send_message(chat_send_to, formatted_message)
@@ -183,7 +185,7 @@ async def signal_handler(sig, frame):
     print(sig, frame)
     global client
     if client:
-        await debug(client, "Freegan has stopped", INFO)
+        await debug("Freegan has stopped", INFO)
         client.disconnect()
 
 async def check(client):
@@ -216,15 +218,15 @@ async def run_client():
     async with client:
         await check(client)
         try:
-            await debug(client, "Freegan has started", INFO)
+            # await debug("Freegan has started", INFO)
             await client.run_until_disconnected()
         except Exception as e:
             # Log and send a message if an error occurs
-            await debug(client, f"An unexpected error occurred: {e}", ERROR)
+            await debug(f"An unexpected error occurred: {e}", ERROR)
         finally:
             # check if client is disconnected
             if client.is_connected():
-                await debug(client, 'strange thing happened', ERROR)
+                await debug('strange thing happened', ERROR)
                 client.disconnect()
 
 
@@ -233,5 +235,5 @@ async def main():
     await run_client()
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+    logging.basicConfig(level=CONSOLE_LOGGING_LEVEL, format='%(asctime)s - %(levelname)s - %(message)s')
     asyncio.run(main())
