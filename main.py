@@ -64,18 +64,6 @@ async def new_message_listener(client, event):
     # Process the text of the event to get lemmas
     lemmas = lemmatize(event.text + ' ' + event.text.replace('-', ''))
 
-    # Calculate intersections of lemmas with keyword groups
-    intersection_group_1 = lemmas.intersection(keyword_group_1)
-    intersection_group_2 = lemmas.intersection(keyword_group_2)
-    intersection_group_3 = lemmas.intersection(keyword_group_3)
-    intersection_group_4 = lemmas.intersection(keyword_group_4)
-    intersection_group_5 = lemmas.intersection(keyword_group_5)
-
-    intersection_filter_2 = lemmas.intersection(filter_keyword_group_2)
-    intersection_filter_3 = lemmas.intersection(filter_keyword_group_3)
-    intersection_filter_4 = lemmas.intersection(filter_keyword_group_4)
-    intersection_stop_filter_5 = lemmas.intersection(filter_stopword_group_5)
-
     matched_keywords = set()
 
     # Calculate intersections and apply rules based on the new groups structure
