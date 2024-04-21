@@ -19,27 +19,42 @@ API_SAVEMESSAGE_METHOD = 'https://api.catebi.ge/api/Freegan/SaveMessage'
 
 # Load environment variables from .env file
 load_dotenv()
-
-env = os.getenv('ENV', 'dev')  # Default to 'prod' if ENV is not set
-config_file_name = 'config.dev.yaml' if env == 'dev' else 'config.yaml'
-
+env = os.getenv('ENV', 'dev')  # Default to 'dev' if ENV is not set
+config_file_name = 'config.yaml'
 api_id = int(os.getenv('TELEGRAM_API_ID', 0))
 api_hash = str(os.getenv('TELEGRAM_API_HASH'))
 chat_send_to = str(os.getenv('TELEGRAM_CHAT_SEND_TO'))
 messages_collecting_is_on = str(os.getenv('MESSAGES_COLLECTING_IS_ON'))
 
-# # Load the configuration from the YAML file
-with open(config_file_name, encoding="utf-8") as config_file:
-    config = yaml.safe_load(config_file)
 
-# Extract keywords from the config
-developers = config['sys_logging']['developers']
-system_topic_id = config['sys_logging']['topic_id']
+# Function to get multiple environment variables with similar names
+def get_env_variables(prefix):
+    variables = []
+    i = 1
+    while True:
+        value = os.getenv(f'{prefix}_{i}')
+        if value is None:
+            break
+        variables.append(value)
+        i += 1
+    return variables
 
-chat_urls = config['chats'] if env == 'dev' else list(
+
+# Retrieve developers from environment
+developers = get_env_variables('DEVELOPER')
+print(developers)
+
+# Retrieve topic ID from environment (assuming it's a single value)
+system_topic_id = int(os.getenv('TOPIC_ID'))
+print(system_topic_id)
+
+chat_urls = get_env_variables('CHAT') if env == 'dev' else list(
     map(lambda x: x['url'], requests.get('https://api.catebi.ge/api/freegan/getdonationchats').json()))
 
 # retrieve groups with filters from config
+with open(config_file_name, encoding="utf-8") as config_file:
+    config = yaml.safe_load(config_file)
+
 groups_data = {}
 for group in config['groups']:
     group_name = group['name']
@@ -57,6 +72,7 @@ sent_messages_cache = set()
 
 # Global Telegram client variable
 client = None
+
 
 async def new_message_listener(client, event):
     if not event.text:
@@ -79,7 +95,7 @@ async def new_message_listener(client, event):
                 matched_keywords.update(intersection_keywords)
 
     post_message_to_db_archive(event.text, (' ').join(lemmas), f"https://t.me/{event.chat.username}/{event.id}", bool(matched_keywords), messages_collecting_is_on)
-    
+
     if matched_keywords:
         # Get the sender of the message
         sender = await event.get_sender()
@@ -121,6 +137,7 @@ async def new_message_listener(client, event):
             sent_messages_cache.add(message_hash)
             await asyncio.sleep(0.3)  # Delay for 100 milliseconds
 
+
 def post_message_to_db_archive(originalText, lemmatizedText, chatLink, accepted, on):
     if on:
         archive_post_data = {
@@ -130,15 +147,18 @@ def post_message_to_db_archive(originalText, lemmatizedText, chatLink, accepted,
             'accepted': accepted
         }
         try:
-            response = requests.post(API_SAVEMESSAGE_METHOD, json=archive_post_data, headers={'Content-type': 'application/json', 'Accept': 'text/plain'})
+            response = requests.post(API_SAVEMESSAGE_METHOD, json=archive_post_data,
+                                     headers={'Content-type': 'application/json', 'Accept': 'text/plain'})
         except requests.RequestException as e:
             debug(f"An error occurred: {e}", level=ERROR)
-            raise 
+            raise
     if response.status_code == 200:
         logging.debug('response: "%s"', response.text)
     else:
-        debug(f'{API_SAVEMESSAGE_METHOD} status_code: {response.status_code}', level = ERROR if response.status_code >= 400 else INFO)
+        debug(f'{API_SAVEMESSAGE_METHOD} status_code: {response.status_code}',
+              level=ERROR if response.status_code >= 400 else INFO)
     return response.status_code
+
 
 async def reaction_listener(event):
     if (event.top_msg_id and event.top_msg_id != system_topic_id):
@@ -173,6 +193,7 @@ def get_current_time():
     """ Returns the current time formatted as HH:MM:SS.mmm """
     return datetime.now().strftime("%H:%M:%S.%f")[:-3]
 
+
 # Define your signal handler
 async def signal_handler(sig, frame):
     print(sig, frame)
@@ -180,6 +201,7 @@ async def signal_handler(sig, frame):
     if client:
         await debug("Freegan has stopped", INFO)
         client.disconnect()
+
 
 async def check(client):
     dialogs = [f'https://t.me/{dialog.draft.entity.username}' async for dialog in client.iter_dialogs() if
@@ -200,6 +222,7 @@ async def check(client):
             except BaseException as e:
                 await client.send_message(chat_send_to, f"{developers}, {e} {chat}")
                 chat_urls.remove(chat)
+
 
 async def run_client():
     global client
@@ -226,6 +249,7 @@ async def run_client():
 async def main():
     signal.signal(signal.SIGTERM, lambda sig, frame: asyncio.create_task(signal_handler(sig, frame)))
     await run_client()
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=CONSOLE_LOGGING_LEVEL, format='%(asctime)s - %(levelname)s - %(message)s')
