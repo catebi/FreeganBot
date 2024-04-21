@@ -1,16 +1,16 @@
-from dotenv import load_dotenv
 import asyncio
-import signal
-import os
 import logging
-import yaml
 import re
-from telethon import TelegramClient, events, errors, functions
-from telethon.tl.types import UpdateMessageReactions
+import signal
 from datetime import datetime
-import requests
-from logging import DEBUG, INFO, ERROR
+from logging import DEBUG, ERROR, INFO
 
+import requests
+import yaml
+from telethon import TelegramClient, errors, events, functions
+from telethon.tl.types import UpdateMessageReactions
+
+from utils.env_processor import API_ID, API_HASH, CHAT_SEND_TO, DEVELOPERS, SYSTEM_TOPIC_ID, CHAT_URLS
 from utils.lemmatizer import Lemmatizer
 
 CHAT_LOGGING_LEVEL = INFO
@@ -19,38 +19,7 @@ CONSOLE_LOGGING_LEVEL = DEBUG
 API_SAVEMESSAGE_METHOD = 'https://api.catebi.ge/api/Freegan/SaveMessage'
 
 # Load environment variables from .env file
-load_dotenv()
-env = os.getenv('ENV', 'dev')  # Default to 'dev' if ENV is not set
 config_file_name = 'config.yaml'
-api_id = int(os.getenv('TELEGRAM_API_ID', 0))
-api_hash = str(os.getenv('TELEGRAM_API_HASH'))
-chat_send_to = str(os.getenv('TELEGRAM_CHAT_SEND_TO'))
-messages_collecting_is_on = str(os.getenv('MESSAGES_COLLECTING_IS_ON'))
-
-
-# Function to get multiple environment variables with similar names
-def get_env_variables(prefix):
-    variables = []
-    i = 1
-    while True:
-        value = os.getenv(f'{prefix}_{i}')
-        if value is None:
-            break
-        variables.append(value)
-        i += 1
-    return variables
-
-
-# Retrieve developers from environment
-developers = get_env_variables('DEVELOPER')
-print(developers)
-
-# Retrieve topic ID from environment (assuming it's a single value)
-system_topic_id = int(os.getenv('TOPIC_ID'))
-print(system_topic_id)
-
-chat_urls = get_env_variables('CHAT') if env == 'dev' else list(
-    map(lambda x: x['url'], requests.get('https://api.catebi.ge/api/freegan/getdonationchats').json()))
 
 # retrieve groups with filters from config
 with open(config_file_name, encoding="utf-8") as config_file:
@@ -127,7 +96,7 @@ async def new_message_listener(client, event):
                        f"user: {display_username}\n\n"
                        f"__time__: `{current_time}`\n"
                        f"__hash__: `{message_hash}`\n")
-            res = await client.send_message(chat_send_to, message, file=photos)
+            res = await client.send_message(CHAT_SEND_TO, message, file=photos)
             new_message_id = res[0].id if isinstance(photos, list) else res.id
             data = {'messageId': new_message_id,
                     'content': event.text,
@@ -163,7 +132,7 @@ def post_message_to_db_archive(originalText, lemmatizedText, chatLink, accepted,
 
 
 async def reaction_listener(event):
-    if (event.top_msg_id and event.top_msg_id != system_topic_id):
+    if (event.top_msg_id and event.top_msg_id != SYSTEM_TOPIC_ID):
         like_count = dislike_count = 0
         if event.reactions.results:
             for react in event.reactions.results:
@@ -183,13 +152,14 @@ async def reaction_listener(event):
 async def debug(message, level=DEBUG):
     # Log the message
     logging.log(level, message)
-    
+
     # Check the current logging level
     if level >= CHAT_LOGGING_LEVEL:
         formatted_message = f"[{logging.getLevelName(level)}] {message}"
 
         # Send the message using the provided Telegram client
-        await client.send_message(chat_send_to, formatted_message)
+        await client.send_message(CHAT_SEND_TO, formatted_message)
+
 
 def get_current_time():
     """ Returns the current time formatted as HH:MM:SS.mmm """
@@ -208,29 +178,32 @@ async def signal_handler(sig, frame):
 async def check(client):
     dialogs = [f'https://t.me/{dialog.draft.entity.username}' async for dialog in client.iter_dialogs() if
                dialog.is_channel and dialog.draft.entity.username]
-    for chat in chat_urls:
+    for chat in CHAT_URLS:
         if chat not in dialogs:
             try:
                 await client(functions.channels.JoinChannelRequest(chat))
             except errors.ChannelsTooMuchError:
-                await client.send_message(chat_send_to,
-                                          f"{developers}, I've joined too many channels and I can't join{chat}")
+                await client.send_message(CHAT_SEND_TO,
+                                          f"{DEVELOPERS}, I've joined too many channels and I can't join{chat}")
             except errors.InviteRequestSentError:
-                await client.send_message(chat_send_to, f"{developers}, a request has been sent to join {chat}")
+                await client.send_message(CHAT_SEND_TO,
+                                          f"{DEVELOPERS}, a request has been sent to join {chat}")
             except errors.ChannelPrivateError:
-                await client.send_message(chat_send_to, f"{developers}, there is no permission to access {chat}")
+                await client.send_message(CHAT_SEND_TO,
+                                          f"{DEVELOPERS}, there is no permission to access {chat}")
             except errors.ChannelInvalidError as e:
-                await client.send_message(chat_send_to, f"{developers}, {e} {chat}")
+                await client.send_message(CHAT_SEND_TO, f"{DEVELOPERS}, {e} {chat}")
             except BaseException as e:
-                await client.send_message(chat_send_to, f"{developers}, {e} {chat}")
-                chat_urls.remove(chat)
+                await client.send_message(CHAT_SEND_TO, f"{DEVELOPERS}, {e} {chat}")
+                CHAT_URLS.remove(chat)
 
 
 async def run_client():
     global client
-    client = TelegramClient('catebi_freegan', api_id, api_hash, sequential_updates=True)
+    client = TelegramClient('catebi_freegan', API_ID, API_HASH, sequential_updates=True)
     # Register your event handlers here
-    client.add_event_handler(lambda event: new_message_listener(client, event), events.NewMessage(chats=chat_urls))
+    client.add_event_handler(lambda event: new_message_listener(client, event),
+                             events.NewMessage(chats=CHAT_URLS))
     client.add_event_handler(lambda event: reaction_listener(event), events.Raw(UpdateMessageReactions))
 
     async with client:
