@@ -8,9 +8,10 @@ import re
 from telethon import TelegramClient, events, errors, functions
 from telethon.tl.types import UpdateMessageReactions
 from datetime import datetime
-from lemmatization import lemmatize
 import requests
-from logging import DEBUG, INFO, WARNING, ERROR, CRITICAL
+from logging import DEBUG, INFO, ERROR
+
+from FreeganBot.utils.lemmatization import Lemmatizer
 
 CHAT_LOGGING_LEVEL = INFO
 CONSOLE_LOGGING_LEVEL = DEBUG
@@ -79,7 +80,8 @@ async def new_message_listener(client, event):
         logging.info('%s%s', event.id, 'empty event.text')
         return
     # Process the text of the event to get lemmas
-    lemmas = lemmatize(event.text + ' ' + event.text.replace('-', ''))
+    lemmatizer = Lemmatizer()
+    lemmas = lemmatizer.lemmatize(event.text + ' ' + event.text.replace('-', ''))
 
     matched_keywords = set()
 
