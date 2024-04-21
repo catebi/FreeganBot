@@ -11,7 +11,7 @@ from datetime import datetime
 import requests
 from logging import DEBUG, INFO, ERROR
 
-from FreeganBot.utils.lemmatization import Lemmatizer
+from utils.lemmatizer import Lemmatizer
 
 CHAT_LOGGING_LEVEL = INFO
 CONSOLE_LOGGING_LEVEL = DEBUG
