@@ -5,63 +5,93 @@ from functools import lru_cache
 
 
 class EnvProcessor:
-    load_dotenv()
+    """
+    A utility class for managing and retrieving environment variables.
+    The class provides methods to fetch individual or groups of environment variables.
+    """
+
+    load_dotenv()  # Load environment variables from a .env file at start-up.
 
     @staticmethod
-    def _get_env(name, default=None):
+    def _get_env(name: str, default=None) -> str:
+        """
+        Fetch environment variable values.
+
+        Args:
+            name (str): The name of the environment variable to retrieve.
+            default (any): The default value to return if the environment variable is not found.
+
+        Returns:
+            str: The value of the environment variable or the default value if not set.
+        """
         return os.getenv(name, default)
 
     @classmethod
-    def get_env_variables(cls, prefix):
+    def get_env_variables(cls, prefix: str) -> list[str]:
+        """
+        Retrieve a list of environment variables that begin with a given prefix.
+
+        Args:
+            prefix (str): A common prefix for the environment variables to be retrieved.
+
+        Returns:
+            list[str]: A list of values for the found environment variables.
+        """
         variables = []
         i = 1
         while True:
-            value = cls._get_env(f'{prefix}_{i}')
+            var_name = f"{prefix}_{i}"
+            value = cls._get_env(var_name)
             if value is None:
                 break
             variables.append(value)
             i += 1
         return variables
 
-    @staticmethod
+    @classmethod
+    @property
     @lru_cache()
-    def read_api_id():
-        return int(EnvProcessor._get_env('TELEGRAM_API_ID', 0))
+    def api_id(cls) -> int:
+        """Return the Telegram API ID as an integer."""
+        return int(cls._get_env('TELEGRAM_API_ID', 0))
 
-    @staticmethod
+    @classmethod
+    @property
     @lru_cache()
-    def read_api_hash():
-        return EnvProcessor._get_env('TELEGRAM_API_HASH', '')
+    def api_hash(cls) -> str:
+        """Return the Telegram API hash as a string."""
+        return cls._get_env('TELEGRAM_API_HASH', '')
 
-    @staticmethod
+    @classmethod
+    @property
     @lru_cache()
-    def read_chat_send_to():
-        return EnvProcessor._get_env('TELEGRAM_CHAT_SEND_TO', '')
+    def chat_send_to(cls) -> str:
+        """Return the identifier where Telegram messages should be sent."""
+        return cls._get_env('TELEGRAM_CHAT_SEND_TO', '')
 
-    @staticmethod
+    @classmethod
+    @property
     @lru_cache()
-    def read_developers():
-        return EnvProcessor.get_env_variables('DEVELOPER')
+    def system_topic_id(cls) -> int:
+        """Return the system topic ID as an integer."""
+        return int(cls._get_env('TOPIC_ID', 0))
 
-    @staticmethod
+    @classmethod
+    @property
     @lru_cache()
-    def read_system_topic_id():
-        return int(EnvProcessor._get_env('TOPIC_ID', 0))
-
-    @staticmethod
-    @lru_cache()
-    def read_chat_urls():
-        if EnvProcessor._get_env('ENV', 'dev') == 'dev':
-            return EnvProcessor.get_env_variables('CHAT')
+    def chat_urls(cls) -> list[str]:
+        """
+        Return a list of chat URLs.
+        """
+        if cls._get_env('ENV', 'dev') == 'dev':
+            return cls.get_env_variables('CHAT')
         else:
             response = requests.get('example.api')
             return [x['url'] for x in response.json()]
 
-
-# Cached properties
-API_ID = EnvProcessor.read_api_id()
-API_HASH = EnvProcessor.read_api_hash()
-CHAT_SEND_TO = EnvProcessor.read_chat_send_to()
-DEVELOPERS = EnvProcessor.read_developers()
-SYSTEM_TOPIC_ID = EnvProcessor.read_system_topic_id()
-CHAT_URLS = EnvProcessor.read_chat_urls()
+    @classmethod
+    @property
+    @lru_cache()
+    def developers(cls) -> list[str]:
+        """Return a list of developers from environment variables."""
+        return cls.get_env_variables('DEVELOPER')
