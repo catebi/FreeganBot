@@ -6,11 +6,11 @@ from datetime import datetime
 from logging import DEBUG, ERROR, INFO
 
 import requests
-import yaml
 from telethon import TelegramClient, errors, events, functions
 from telethon.tl.types import UpdateMessageReactions
 
-from utils.env_processor import API_ID, API_HASH, CHAT_SEND_TO, DEVELOPERS, SYSTEM_TOPIC_ID, CHAT_URLS
+from utils.env_processor import EnvProcessor
+from utils.yaml_processor import YamlProcessor
 from utils.lemmatizer import Lemmatizer
 
 CHAT_LOGGING_LEVEL = INFO
@@ -18,24 +18,6 @@ CONSOLE_LOGGING_LEVEL = DEBUG
 
 API_SAVEMESSAGE_METHOD = 'https://api.catebi.ge/api/Freegan/SaveMessage'
 
-# Load environment variables from .env file
-config_file_name = 'config.yaml'
-
-# retrieve groups with filters from config
-with open(config_file_name, encoding="utf-8") as config_file:
-    config = yaml.safe_load(config_file)
-
-groups_data = {}
-for group in config['groups']:
-    group_name = group['name']
-    keywords = set(group['keywords'])
-    include_keywords = set(group.get('include_keywords', []))
-    exclude_keywords = set(group.get('exclude_keywords', []))
-    groups_data[group_name] = {
-        'keywords': keywords,
-        'include_keywords': include_keywords,
-        'exclude_keywords': exclude_keywords
-    }
 
 # Global set to store hashes of sent messages
 sent_messages_cache = set()
@@ -55,14 +37,14 @@ async def new_message_listener(client, event):
     matched_keywords = set()
 
     # Calculate intersections and apply rules based on the new groups structure
-    for name, info in groups_data.items():
-        intersection_keywords = lemmas.intersection(info['keywords'])
-        intersection_include = lemmas.intersection(info['include_keywords'])
-        intersection_exclude = lemmas.intersection(info['exclude_keywords'])
+    for group in YamlProcessor.groups_data:
+        intersection_keywords = lemmas.intersection(group.keywords)
+        intersection_include = lemmas.intersection(group.include_keywords)
+        intersection_exclude = lemmas.intersection(group.exclude_keywords)
 
         if intersection_keywords:
-            if (info['include_keywords'] and intersection_include) or (
-                    info['exclude_keywords'] and not intersection_exclude):
+            if (group.include_keywords and intersection_include) or (
+                    group.exclude_keywords and not intersection_exclude):
                 matched_keywords.update(intersection_keywords)
 
     post_message_to_db_archive(event.text, (' ').join(lemmas), f"https://t.me/{event.chat.username}/{event.id}", bool(matched_keywords), messages_collecting_is_on)
@@ -96,7 +78,7 @@ async def new_message_listener(client, event):
                        f"user: {display_username}\n\n"
                        f"__time__: `{current_time}`\n"
                        f"__hash__: `{message_hash}`\n")
-            res = await client.send_message(CHAT_SEND_TO, message, file=photos)
+            res = await client.send_message(EnvProcessor.chat_send_to, message, file=photos)
             new_message_id = res[0].id if isinstance(photos, list) else res.id
             data = {'messageId': new_message_id,
                     'content': event.text,
@@ -132,7 +114,7 @@ def post_message_to_db_archive(originalText, lemmatizedText, chatLink, accepted,
 
 
 async def reaction_listener(event):
-    if (event.top_msg_id and event.top_msg_id != SYSTEM_TOPIC_ID):
+    if event.top_msg_id and event.top_msg_id != EnvProcessor.system_topic_id:
         like_count = dislike_count = 0
         if event.reactions.results:
             for react in event.reactions.results:
@@ -158,7 +140,7 @@ async def debug(message, level=DEBUG):
         formatted_message = f"[{logging.getLevelName(level)}] {message}"
 
         # Send the message using the provided Telegram client
-        await client.send_message(CHAT_SEND_TO, formatted_message)
+        await client.send_message(EnvProcessor.chat_send_to, formatted_message)
 
 
 def get_current_time():
@@ -178,32 +160,32 @@ async def signal_handler(sig, frame):
 async def check(client):
     dialogs = [f'https://t.me/{dialog.draft.entity.username}' async for dialog in client.iter_dialogs() if
                dialog.is_channel and dialog.draft.entity.username]
-    for chat in CHAT_URLS:
+    for chat in EnvProcessor.chat_urls:
         if chat not in dialogs:
             try:
                 await client(functions.channels.JoinChannelRequest(chat))
             except errors.ChannelsTooMuchError:
-                await client.send_message(CHAT_SEND_TO,
-                                          f"{DEVELOPERS}, I've joined too many channels and I can't join{chat}")
+                await client.send_message(EnvProcessor.chat_send_to,
+                                          f"{EnvProcessor.developers}, I've joined too many channels and I can't join{chat}")
             except errors.InviteRequestSentError:
-                await client.send_message(CHAT_SEND_TO,
-                                          f"{DEVELOPERS}, a request has been sent to join {chat}")
+                await client.send_message(EnvProcessor.chat_send_to,
+                                          f"{EnvProcessor.developers}, a request has been sent to join {chat}")
             except errors.ChannelPrivateError:
-                await client.send_message(CHAT_SEND_TO,
-                                          f"{DEVELOPERS}, there is no permission to access {chat}")
+                await client.send_message(EnvProcessor.chat_send_to,
+                                          f"{EnvProcessor.developers}, there is no permission to access {chat}")
             except errors.ChannelInvalidError as e:
-                await client.send_message(CHAT_SEND_TO, f"{DEVELOPERS}, {e} {chat}")
+                await client.send_message(EnvProcessor.chat_send_to, f"{EnvProcessor.developers}, {e} {chat}")
             except BaseException as e:
-                await client.send_message(CHAT_SEND_TO, f"{DEVELOPERS}, {e} {chat}")
-                CHAT_URLS.remove(chat)
+                await client.send_message(EnvProcessor.chat_send_to, f"{EnvProcessor.developers}, {e} {chat}")
+                EnvProcessor.chat_urls.remove(chat)
 
 
 async def run_client():
     global client
-    client = TelegramClient('catebi_freegan', API_ID, API_HASH, sequential_updates=True)
+    client = TelegramClient('catebi_freegan', EnvProcessor.api_id, EnvProcessor.api_hash, sequential_updates=True)
     # Register your event handlers here
     client.add_event_handler(lambda event: new_message_listener(client, event),
-                             events.NewMessage(chats=CHAT_URLS))
+                             events.NewMessage(chats=EnvProcessor.chat_urls))
     client.add_event_handler(lambda event: reaction_listener(event), events.Raw(UpdateMessageReactions))
 
     async with client:
