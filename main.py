@@ -26,6 +26,7 @@ config_file_name = 'config.dev.yaml' if env == 'dev' else 'config.yaml'
 api_id = int(os.getenv('TELEGRAM_API_ID', 0))
 api_hash = str(os.getenv('TELEGRAM_API_HASH'))
 chat_send_to = str(os.getenv('TELEGRAM_CHAT_SEND_TO'))
+messages_collecting_is_on = str(os.getenv('MESSAHES_COLLECTING_IS_ON'))
 
 # # Load the configuration from the YAML file
 with open(config_file_name, encoding="utf-8") as config_file:
@@ -77,7 +78,7 @@ async def new_message_listener(client, event):
                     info['exclude_keywords'] and not intersection_exclude):
                 matched_keywords.update(intersection_keywords)
 
-    post_message_to_db_archive(event.text, (' ').join(lemmas), f"https://t.me/{event.chat.username}/{event.id}", bool(matched_keywords), True)
+    post_message_to_db_archive(event.text, (' ').join(lemmas), f"https://t.me/{event.chat.username}/{event.id}", bool(matched_keywords), messages_collecting_is_on)
     
     if matched_keywords:
         # Get the sender of the message
