@@ -77,13 +77,8 @@ async def new_message_listener(client, event):
                     info['exclude_keywords'] and not intersection_exclude):
                 matched_keywords.update(intersection_keywords)
 
-    archive_post_data = {
-        'originalText': event.text,
-        'lemmatizedText': (' ').join(lemmas),
-        'chatLink': f"https://t.me/{event.chat.username}/{event.id}",
-        'accepted': bool(matched_keywords)}
-    response = requests.post('https://api.catebi.ge/api/Freegan/SaveMessage', json=archive_post_data, headers={'Content-type': 'application/json', 'Accept': 'text/plain'})
-
+    post_message_to_db_archive(event.text, (' ').join(lemmas), f"https://t.me/{event.chat.username}/{event.id}", bool(matched_keywords), True)
+    
     if matched_keywords:
         # Get the sender of the message
         sender = await event.get_sender()
