@@ -211,7 +211,7 @@ async def run_client():
     async with client:
         await check(client)
         try:
-            # await debug("Freegan has started", INFO)
+            await debug("Freegan has started", INFO)
             await client.run_until_disconnected()
         except Exception as e:
             # Log and send a message if an error occurs
