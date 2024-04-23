@@ -26,7 +26,7 @@ config_file_name = 'config.dev.yaml' if env == 'dev' else 'config.yaml'
 api_id = int(os.getenv('TELEGRAM_API_ID', 0))
 api_hash = str(os.getenv('TELEGRAM_API_HASH'))
 chat_send_to = str(os.getenv('TELEGRAM_CHAT_SEND_TO'))
-messages_collecting_is_on = str(os.getenv('MESSAHES_COLLECTING_IS_ON'))
+messages_collecting_is_on = str(os.getenv('MESSAGES_COLLECTING_IS_ON'))
 
 # # Load the configuration from the YAML file
 with open(config_file_name, encoding="utf-8") as config_file:
