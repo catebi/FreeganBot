@@ -6,6 +6,7 @@ from datetime import datetime
 from logging import DEBUG, ERROR, INFO
 
 import requests
+from requests import Response
 from telethon import TelegramClient, errors, events, functions
 from telethon.tl.types import UpdateMessageReactions
 
@@ -102,15 +103,15 @@ def post_message_to_db_archive(originalText, lemmatizedText, chatLink, accepted,
         try:
             response = requests.post(API_SAVEMESSAGE_METHOD, json=archive_post_data,
                                      headers={'Content-type': 'application/json', 'Accept': 'text/plain'})
+            if response.status_code == 200:
+                logging.debug('response: "%s"', response.text)
+            else:
+                debug(f'{API_SAVEMESSAGE_METHOD} status_code: {response.status_code}',
+                      level=ERROR if response.status_code >= 400 else INFO)
+            return response.status_code
         except requests.RequestException as e:
             debug(f"An error occurred: {e}", level=ERROR)
             raise
-    if response.status_code == 200:
-        logging.debug('response: "%s"', response.text)
-    else:
-        debug(f'{API_SAVEMESSAGE_METHOD} status_code: {response.status_code}',
-              level=ERROR if response.status_code >= 400 else INFO)
-    return response.status_code
 
 
 async def reaction_listener(event):
