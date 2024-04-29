@@ -27,26 +27,24 @@ class EnvProcessor:
         return os.getenv(name, default)
 
     @classmethod
-    def get_env_variables(cls, prefix: str) -> list[str]:
+    def get_env_variable_list(cls, variable_name: str) -> list[str]:
         """
-        Retrieve a list of environment variables that begin with a given prefix.
+        Retrieve a list of values from a comma-separated environment variable.
 
         Args:
-            prefix (str): A common prefix for the environment variables to be retrieved.
+            variable_name (str): The name of the environment variable to be retrieved.
 
         Returns:
-            list[str]: A list of values for the found environment variables.
+            list[str]: A list of trimmed values from the environment variable.
         """
-        variables = []
-        i = 1
-        while True:
-            var_name = f"{prefix}_{i}"
-            value = cls._get_env(var_name)
-            if value is None:
-                break
-            variables.append(value)
-            i += 1
-        return variables
+        values = cls._get_env(variable_name)
+        if values is None:
+            raise ValueError(f"Environment variable '{variable_name}' is not set.")
+
+        result = [value.strip() for value in values.split(',')]
+        if not result or not all(result):
+            raise ValueError(f"Environment variable '{variable_name}' must contain at least one valid item.")
+        return result
 
     @classmethod
     @property
@@ -88,10 +86,10 @@ class EnvProcessor:
     @lru_cache()
     def chat_urls(cls) -> list[str]:
         """
-        Return a list of chat URLs.
+        Return a list of chat URLs from environment variables.
         """
         if cls._get_env('ENV', 'dev') == 'dev':
-            return cls.get_env_variables('CHAT')
+            return cls.get_env_variable_list('CHATS')
         else:
             response = requests.get('example.api')
             return [x['url'] for x in response.json()]
@@ -100,5 +98,7 @@ class EnvProcessor:
     @property
     @lru_cache()
     def developers(cls) -> list[str]:
-        """Return a list of developers from environment variables."""
-        return cls.get_env_variables('DEVELOPER')
+        """
+        Return a list of developer usernames from environment variables.
+        """
+        return cls.get_env_variable_list('DEVELOPERS')
