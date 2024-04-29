@@ -39,7 +39,7 @@ Telegram bot to search for donations in chats and channels
 2. **Setting Up Venv**: First, create [venv](https://docs.python.org/3/library/venv.html) for the project with this
    command:
    ```bash
-   python -m venv venv
+   python3.10 -m venv venv
    ```
    Next, activate venv:
    ```bash
@@ -102,7 +102,7 @@ Telegram bot to search for donations in chats and channels
 
 ## Bot Config
 
-Bot config has two versions: `config.dev.yaml` for development environment and `config.yaml` for production environment.
+Bot config is `config.yaml` file.
 
 Config structure:
 
