@@ -4,8 +4,17 @@ import string
 
 
 class Lemmatizer:
+    """
+        A class for text lemmatization for Russian language, which also includes spellchecking capabilities.
+    """
 
     def load_more_words(self, new_words):
+        """
+           Loads a list of new words into the spellchecker's dictionary.
+
+           Args:
+            new_words (list of str): A list of new words to be added to the spellchecker's vocabulary.
+        """
         self.spell.word_frequency.load_words(new_words)
 
     def __init__(self, language='ru'):
@@ -16,6 +25,18 @@ class Lemmatizer:
         self.load_more_words(['когтеточка', 'мальт-паст', 'веревка', 'габапентин', 'паучи'])
 
     def lemmatize(self, text):
+        """
+            Lemmatizes the provided text after removing any punctuation and converting to lower case.
+
+            Args:
+                text (str): The input text to be lemmatized.
+
+            Returns:
+                set: A set of lemmatized words from the input text.
+
+            Raises:
+                ValueError: If the input is not a string.
+        """
         try:
             # Check if the input text is a valid string
             if not isinstance(text, str):
