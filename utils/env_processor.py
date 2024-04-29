@@ -65,6 +65,13 @@ class EnvProcessor:
     @classmethod
     @property
     @lru_cache()
+    def message_collecting_is_on(cls) -> bool:
+        """Return message collecting flag as a bool."""
+        return cls._get_env("MESSAGES_COLLECTING_IS_ON", 'False') == "True"
+
+    @classmethod
+    @property
+    @lru_cache()
     def chat_send_to(cls) -> str:
         """Return the identifier where Telegram messages should be sent."""
         return cls._get_env('TELEGRAM_CHAT_SEND_TO', '')

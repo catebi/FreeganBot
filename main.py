@@ -18,7 +18,6 @@ CONSOLE_LOGGING_LEVEL = DEBUG
 
 API_SAVEMESSAGE_METHOD = 'https://api.catebi.ge/api/Freegan/SaveMessage'
 
-
 # Global set to store hashes of sent messages
 sent_messages_cache = set()
 
@@ -47,7 +46,8 @@ async def new_message_listener(client, event):
                     group.exclude_keywords and not intersection_exclude):
                 matched_keywords.update(intersection_keywords)
 
-    post_message_to_db_archive(event.text, (' ').join(lemmas), f"https://t.me/{event.chat.username}/{event.id}", bool(matched_keywords), messages_collecting_is_on)
+    post_message_to_db_archive(event.text, (' ').join(lemmas), f"https://t.me/{event.chat.username}/{event.id}",
+                               bool(matched_keywords), EnvProcessor.message_collecting_is_on)
 
     if matched_keywords:
         # Get the sender of the message
