@@ -1,7 +1,3 @@
-sys_logging:
-  developers:  "@lejafo"
-  topic_id: 2693
-
 groups:
   - name: 'main group'
     keywords:
