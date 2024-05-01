@@ -47,42 +47,36 @@ class EnvProcessor:
         return result
 
     @classmethod
-    @property
     @lru_cache()
     def api_id(cls) -> int:
         """Return the Telegram API ID as an integer."""
         return int(cls._get_env('TELEGRAM_API_ID', 0))
 
     @classmethod
-    @property
     @lru_cache()
     def api_hash(cls) -> str:
         """Return the Telegram API hash as a string."""
         return cls._get_env('TELEGRAM_API_HASH', '')
 
     @classmethod
-    @property
     @lru_cache()
     def message_collecting_is_on(cls) -> bool:
         """Return message collecting flag as a bool."""
         return cls._get_env("MESSAGES_COLLECTING_IS_ON", 'False') == "True"
 
     @classmethod
-    @property
     @lru_cache()
     def chat_send_to(cls) -> str:
         """Return the identifier where Telegram messages should be sent."""
         return cls._get_env('TELEGRAM_CHAT_SEND_TO', '')
 
     @classmethod
-    @property
     @lru_cache()
     def system_topic_id(cls) -> int:
         """Return the system topic ID as an integer."""
         return int(cls._get_env('TOPIC_ID', 0))
 
     @classmethod
-    @property
     @lru_cache()
     def chat_urls(cls) -> list[str]:
         """
@@ -95,7 +89,6 @@ class EnvProcessor:
             return [x['url'] for x in response.json()]
 
     @classmethod
-    @property
     @lru_cache()
     def developers(cls) -> list[str]:
         """
