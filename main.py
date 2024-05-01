@@ -36,7 +36,7 @@ async def new_message_listener(client, event):
     matched_keywords = find_intersections(lemmas)
 
     post_message_to_db_archive(event.text, (' ').join(lemmas), f"https://t.me/{event.chat.username}/{event.id}",
-                               bool(matched_keywords), EnvProcessor.message_collecting_is_on)
+                               bool(matched_keywords), EnvProcessor.message_collecting_is_on())
 
     if matched_keywords:
         # Get the sender of the message
@@ -67,7 +67,7 @@ async def new_message_listener(client, event):
                        f"user: {display_username}\n\n"
                        f"__time__: `{current_time}`\n"
                        f"__hash__: `{message_hash}`\n")
-            res = await client.send_message(EnvProcessor.chat_send_to, message, file=photos)
+            res = await client.send_message(EnvProcessor.chat_send_to(), message, file=photos)
             new_message_id = res[0].id if isinstance(photos, list) else res.id
             data = {'messageId': new_message_id,
                     'content': event.text,
@@ -103,7 +103,7 @@ def post_message_to_db_archive(originalText, lemmatizedText, chatLink, accepted,
 
 
 async def reaction_listener(event):
-    if event.top_msg_id and event.top_msg_id != EnvProcessor.system_topic_id:
+    if event.top_msg_id and event.top_msg_id != EnvProcessor.system_topic_id():
         like_count = dislike_count = 0
         if event.reactions.results:
             for react in event.reactions.results:
@@ -129,7 +129,7 @@ async def debug(message, level=DEBUG):
         formatted_message = f"[{logging.getLevelName(level)}] {message}"
 
         # Send the message using the provided Telegram client
-        await client.send_message(EnvProcessor.chat_send_to, formatted_message)
+        await client.send_message(EnvProcessor.chat_send_to(), formatted_message)
 
 
 def get_current_time():
@@ -149,32 +149,32 @@ async def signal_handler(sig, frame):
 async def check(client):
     dialogs = [f'https://t.me/{dialog.draft.entity.username}' async for dialog in client.iter_dialogs() if
                dialog.is_channel and dialog.draft.entity.username]
-    for chat in EnvProcessor.chat_urls:
+    for chat in EnvProcessor.chat_urls():
         if chat not in dialogs:
             try:
                 await client(functions.channels.JoinChannelRequest(chat))
             except errors.ChannelsTooMuchError:
-                await client.send_message(EnvProcessor.chat_send_to,
-                                          f"{EnvProcessor.developers}, I've joined too many channels and I can't join{chat}")
+                await client.send_message(EnvProcessor.chat_send_to(),
+                                          f"{EnvProcessor.developers()}, I've joined too many channels and I can't join{chat}")
             except errors.InviteRequestSentError:
-                await client.send_message(EnvProcessor.chat_send_to,
-                                          f"{EnvProcessor.developers}, a request has been sent to join {chat}")
+                await client.send_message(EnvProcessor.chat_send_to(),
+                                          f"{EnvProcessor.developers()}, a request has been sent to join {chat}")
             except errors.ChannelPrivateError:
-                await client.send_message(EnvProcessor.chat_send_to,
-                                          f"{EnvProcessor.developers}, there is no permission to access {chat}")
+                await client.send_message(EnvProcessor.chat_send_to(),
+                                          f"{EnvProcessor.developers()}, there is no permission to access {chat}")
             except errors.ChannelInvalidError as e:
-                await client.send_message(EnvProcessor.chat_send_to, f"{EnvProcessor.developers}, {e} {chat}")
+                await client.send_message(EnvProcessor.chat_send_to(), f"{EnvProcessor.developers()}, {e} {chat}")
             except BaseException as e:
-                await client.send_message(EnvProcessor.chat_send_to, f"{EnvProcessor.developers}, {e} {chat}")
-                EnvProcessor.chat_urls.remove(chat)
+                await client.send_message(EnvProcessor.chat_send_to(), f"{EnvProcessor.developers()}, {e} {chat}")
+                EnvProcessor.chat_urls().remove(chat)
 
 
 async def run_client():
     global client
-    client = TelegramClient('catebi_freegan', EnvProcessor.api_id, EnvProcessor.api_hash, sequential_updates=True)
+    client = TelegramClient('catebi_freegan', EnvProcessor.api_id(), EnvProcessor.api_hash(), sequential_updates=True)
     # Register your event handlers here
     client.add_event_handler(lambda event: new_message_listener(client, event),
-                             events.NewMessage(chats=EnvProcessor.chat_urls))
+                             events.NewMessage(chats=EnvProcessor.chat_urls()))
     client.add_event_handler(lambda event: reaction_listener(event), events.Raw(UpdateMessageReactions))
 
     async with client:
