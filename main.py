@@ -6,12 +6,11 @@ from datetime import datetime
 from logging import DEBUG, ERROR, INFO
 
 import requests
-from requests import Response
 from telethon import TelegramClient, errors, events, functions
 from telethon.tl.types import UpdateMessageReactions
 
+from text_processing.text_processor import find_intersections
 from utils.env_processor import EnvProcessor
-from utils.yaml_processor import YamlProcessor
 from utils.lemmatizer import Lemmatizer
 
 CHAT_LOGGING_LEVEL = INFO
@@ -34,18 +33,7 @@ async def new_message_listener(client, event):
     lemmatizer = Lemmatizer()
     lemmas = lemmatizer.lemmatize(event.text + ' ' + event.text.replace('-', ''))
 
-    matched_keywords = set()
-
-    # Calculate intersections and apply rules based on the new groups structure
-    for group in YamlProcessor.groups_data:
-        intersection_keywords = lemmas.intersection(group.keywords)
-        intersection_include = lemmas.intersection(group.include_keywords)
-        intersection_exclude = lemmas.intersection(group.exclude_keywords)
-
-        if intersection_keywords:
-            if (group.include_keywords and intersection_include) or (
-                    group.exclude_keywords and not intersection_exclude):
-                matched_keywords.update(intersection_keywords)
+    matched_keywords = find_intersections(lemmas)
 
     post_message_to_db_archive(event.text, (' ').join(lemmas), f"https://t.me/{event.chat.username}/{event.id}",
                                bool(matched_keywords), EnvProcessor.message_collecting_is_on)
