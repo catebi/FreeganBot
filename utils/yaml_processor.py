@@ -20,7 +20,6 @@ class YamlProcessor:
         return 'config.yaml'
 
     @classmethod
-    @property
     @lru_cache()
     def config(cls) -> Any:
         """
@@ -36,7 +35,7 @@ class YamlProcessor:
         objects with the specified properties.
         """
         groups_data = []
-        for group in cls.config['groups']:  # type: ignore
+        for group in cls.config()['groups']:
             group_name = group['name']
             keywords = set(group['keywords'])
             include_keywords = set(group.get('include_keywords', []))
@@ -46,7 +45,6 @@ class YamlProcessor:
         return groups_data
 
     @classmethod
-    @property
     @lru_cache()
     def groups_data(cls) -> list[Group]:
         """
