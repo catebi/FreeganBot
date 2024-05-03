@@ -38,7 +38,7 @@ async def new_message_listener(client, event):
     try:
         response = post_message_to_db_archive(event.text, ' '.join(lemmas),
                                               f"https://t.me/{event.chat.username}/{event.id}",
-                                              bool(matched_keywords), EnvProcessor.message_collecting_is_on)
+                                              bool(matched_keywords), EnvProcessor.message_collecting_is_on())
         if response and response.status_code == 200:
             logging.debug('response: "%s"', response.text)
         elif response:
