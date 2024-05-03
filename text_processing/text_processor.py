@@ -1,4 +1,12 @@
+from utils.lemmatizer import Lemmatizer
 from utils.yaml_processor import YamlProcessor
+
+
+def process_text_and_extract_keywords(text):
+    lemmatizer = Lemmatizer()
+    lemmas = lemmatizer.lemmatize(text + ' ' + text.replace('-', ''))
+    matched_keywords = find_intersections(lemmas)
+    return lemmas, matched_keywords
 
 
 def find_intersections(lemmas: set) -> set[set]:
