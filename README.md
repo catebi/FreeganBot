@@ -6,68 +6,62 @@ Telegram bot to search for donations in chats and channels
 
 ### Prerequisites
 
-1. **Python Installation**: This script requires Python, specifically version 3.10, due to compatibility with libraries
-   used. Here are the steps to install Python 3.10:
+1. [x] **Python Installation**: This script requires Python, specifically version 3.13, due to compatibility with libraries
+   used. Here are the steps to install Python 3.13:
 
     - **Ubuntu/Linux**:
       ```bash
       sudo add-apt-repository ppa:deadsnakes/ppa
       sudo apt update
-      sudo apt install python3.10 python3.10-venv python3.10-dev
+      sudo apt install python3.13 python3.13-venv python3.13-dev
       ```
 
     - **Windows**:
-      Download and install Python 3.10 from [Python Releases for Windows](https://www.python.org/downloads/windows/). During installation, make sure to check the
-      option 'Add Python 3.10 to PATH'.
+      Download and install Python 3.13 from [Python Releases for Windows](https://www.python.org/downloads/windows/). During installation, make sure to check the
+      option 'Add Python 3.13 to PATH'.
 
     - **macOS**:
       Install Homebrew if it's not already installed:
       ```bash
       /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
       ```
-      Then, install Python 3.10 using Homebrew:
+      Then, install Python 3.13 using Homebrew:
       ```bash
-      brew install python@3.10
-      brew link --overwrite python@3.10
+      brew install python@3.13
+      brew link --overwrite python@3.13
       ```
 
    Verify the installation by checking the Python version:
    ```bash
-   python3.10 --version
+   python3.13 --version
    ```
-
-2. **Setting Up Venv**: First, create [venv](https://docs.python.org/3/library/venv.html) for the project with this
+2. [x] **Setting Up Venv**: First, create [venv](https://docs.python.org/3/library/venv.html) for the project with this
    command:
    ```bash
-   python3.10 -m venv venv
+   python3.13 -m venv venv
    ```
    Next, activate venv:
    ```bash
    source venv/bin/activate
    ```
-
-3. **Install Dependencies**: install all required dependencies with
+3. [x] **Install Dependencies**: install all required dependencies with
    this [command](https://pip.pypa.io/en/stable/user_guide/):
 
    ```bash
    pip install -r requirements.txt
    ```
-
-4. **Telegram API Credentials**: You need a Telegram API `api_id` and `api_hash`. These are obtained by registering your
+4. [x] **Telegram API Credentials**: You need a Telegram API `api_id` and `api_hash`. These are obtained by registering your
    application on Telegram’s website. Here's how:
 
     - Go to [my.telegram.org](https://my.telegram.org).
     - Log in with your Telegram account.
     - Click on 'API development tools' and fill out the form to create a new application.
     - Once created, you'll receive your `api_id` and `api_hash`.
-
-5. **Internet Connection**: Since the script interacts with Telegram's servers, an active internet connection is
+5. [x] **Internet Connection**: Since the script interacts with Telegram's servers, an active internet connection is
    required.
-
-6. **A Telegram Account**: The script will run under your Telegram account, so ensure you have access to the account you
+6. [x] **A Telegram Account**: The script will run under your Telegram account, so ensure you have access to the account you
    intend to use.
-
-7. **Environment Variables**: copy `env.example` content into `.env` file with this command:
+7. [x] **Environment Variables**: copy `env.example` content into `.env` file with this command:
    ```bash
    [ ! -f .env ] && cp env.example .env
    ```
@@ -78,8 +72,7 @@ Telegram bot to search for donations in chats and channels
     - `TELEGRAM_API_HASH` is from [my.telegram.org](https://my.telegram.org) `api_hash`.
     - `TELEGRAM_CHAT_SEND_TO` is Telegram Username where bot should send donation messages to (for dev purposes it's
       usually your test chat).
-
-8. **Setting up your test environment**: You should test the bot functions with your test chat. Here's how to do that:
+8. [x] **Setting up your test environment**: You should test the bot functions with your test chat. Here's how to do that:
 
     - Create a public chat or channel in Telegram
     - Add [@freegan_catebi_leshiy_bot](https://t.me/freegan_catebi_leshiy_bot) into your chat
