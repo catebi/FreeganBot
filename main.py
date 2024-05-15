@@ -84,7 +84,11 @@ async def new_message_listener(client, event):
                     'likeCount': 0,
                     'dislikeCount': 0,
                     }
-            save_reaction(data)
+            try:
+                save_reaction(data)
+            except requests.RequestException as e:
+                await debug(f"An error occurred: {e}", level=ERROR)
+                raise
             sent_messages_cache.add(message_hash)
             await asyncio.sleep(0.3)  # Delay for 100 milliseconds
 
@@ -103,7 +107,11 @@ async def reaction_listener(event):
                 'likeCount': like_count,
                 'dislikeCount': dislike_count,
                 }
-        save_reaction(data)
+        try:
+            save_reaction(data)
+        except requests.RequestException as e:
+            await debug(f"An error occurred: {e}", level=ERROR)
+            raise
 
 
 async def debug(message, level=DEBUG):
