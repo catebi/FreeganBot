@@ -1,5 +1,7 @@
 from functools import lru_cache
 
+from utils.env_processor import EnvProcessor
+
 
 class CatebiEndpoints:
 
@@ -7,10 +9,10 @@ class CatebiEndpoints:
     @lru_cache()
     def save_reaction(cls) -> str:
         """Return save reaction endpoint URL. """
-        return "https://api.catebi.ge/api/Freegan/SaveReaction"
+        return f"{EnvProcessor.catebi_api()}Freegan/SaveReaction"
 
     @classmethod
     @lru_cache()
     def save_message(cls) -> str:
         """Return save message endpoint URL. """
-        return "https://api.catebi.ge/api/Freegan/SaveMessage"
+        return f"{EnvProcessor.catebi_api()}Freegan/SaveMessage"
