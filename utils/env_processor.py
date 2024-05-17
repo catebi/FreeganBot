@@ -95,3 +95,9 @@ class EnvProcessor:
         Return a list of developer usernames from environment variables.
         """
         return cls.get_env_variable_list('DEVELOPERS')
+
+    @classmethod
+    @lru_cache()
+    def catebi_api(cls) -> str:
+        """Return Catebi API link"""
+        return cls._get_env('CATEBI_API_LINK', '')

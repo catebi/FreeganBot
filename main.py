@@ -9,14 +9,14 @@ import requests
 from telethon import TelegramClient, errors, events, functions
 from telethon.tl.types import UpdateMessageReactions
 
+from catebi_api.catebi_adapter import post_message_to_db_archive, save_reaction
 from text_processing.text_processor import find_intersections
 from utils.env_processor import EnvProcessor
 from utils.lemmatizer import Lemmatizer
+from catebi_api.catebi_endpoints import CatebiEndpoints
 
 CHAT_LOGGING_LEVEL = INFO
 CONSOLE_LOGGING_LEVEL = DEBUG
-
-API_SAVEMESSAGE_METHOD = 'https://api.catebi.ge/api/Freegan/SaveMessage'
 
 # Global set to store hashes of sent messages
 sent_messages_cache = set()
@@ -35,8 +35,18 @@ async def new_message_listener(client, event):
 
     matched_keywords = find_intersections(lemmas)
 
-    post_message_to_db_archive(event.text, (' ').join(lemmas), f"https://t.me/{event.chat.username}/{event.id}",
-                               bool(matched_keywords), EnvProcessor.message_collecting_is_on())
+    try:
+        response = post_message_to_db_archive(event.text, ' '.join(lemmas),
+                                              f"https://t.me/{event.chat.username}/{event.id}",
+                                              bool(matched_keywords), EnvProcessor.message_collecting_is_on())
+        if response and response.status_code == 200:
+            logging.debug('response: "%s"', response.text)
+        elif response:
+            await debug(f'{CatebiEndpoints.save_message()} status_code: {response.status_code}',
+                        level=ERROR if response.status_code >= 400 else INFO)
+    except requests.RequestException as e:
+        await debug(f"An error occurred: {e}", level=ERROR)
+        raise
 
     if matched_keywords:
         # Get the sender of the message
@@ -74,32 +84,13 @@ async def new_message_listener(client, event):
                     'likeCount': 0,
                     'dislikeCount': 0,
                     }
-            requests.post('https://api.catebi.ge/api/Freegan/SaveReaction', json=data,
-                          headers={'Content-type': 'application/json'})
+            try:
+                save_reaction(data)
+            except requests.RequestException as e:
+                await debug(f"An error occurred: {e}", level=ERROR)
+                raise
             sent_messages_cache.add(message_hash)
             await asyncio.sleep(0.3)  # Delay for 100 milliseconds
-
-
-def post_message_to_db_archive(originalText, lemmatizedText, chatLink, accepted, on):
-    if on:
-        archive_post_data = {
-            'originalText': originalText,
-            'lemmatizedText': lemmatizedText,
-            'chatLink': chatLink,
-            'accepted': accepted
-        }
-        try:
-            response = requests.post(API_SAVEMESSAGE_METHOD, json=archive_post_data,
-                                     headers={'Content-type': 'application/json', 'Accept': 'text/plain'})
-            if response.status_code == 200:
-                logging.debug('response: "%s"', response.text)
-            else:
-                debug(f'{API_SAVEMESSAGE_METHOD} status_code: {response.status_code}',
-                      level=ERROR if response.status_code >= 400 else INFO)
-            return response.status_code
-        except requests.RequestException as e:
-            debug(f"An error occurred: {e}", level=ERROR)
-            raise
 
 
 async def reaction_listener(event):
@@ -116,8 +107,11 @@ async def reaction_listener(event):
                 'likeCount': like_count,
                 'dislikeCount': dislike_count,
                 }
-        requests.post('https://api.catebi.ge/api/Freegan/SaveReaction', json=data,
-                      headers={'Content-type': 'application/json'})
+        try:
+            save_reaction(data)
+        except requests.RequestException as e:
+            await debug(f"An error occurred: {e}", level=ERROR)
+            raise
 
 
 async def debug(message, level=DEBUG):
