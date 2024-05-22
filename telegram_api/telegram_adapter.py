@@ -2,10 +2,12 @@ import asyncio
 import logging
 from logging import ERROR, INFO
 
+import requests
 from telethon import events, functions
 from telethon.tl.types import UpdateMessageReactions
 
 from catebi_api.catebi_adapter import save_reaction, post_message_to_db_archive
+from telegram_api.error_handler import ErrorHandler
 from text_processing.text_processor import process_text_and_extract_keywords
 from utils.env_processor import EnvProcessor
 from utils.telegram_utils import get_sender_username, prepare_message_hash_and_photos, get_current_time, \
@@ -13,7 +15,7 @@ from utils.telegram_utils import get_sender_username, prepare_message_hash_and_p
 
 
 class TelegramAdapter:
-    def __init__(self, error_handler):
+    def __init__(self, error_handler: ErrorHandler):
         self.client = None
         self.sent_messages_cache = set()
         self.error_handler = error_handler
@@ -31,8 +33,7 @@ class TelegramAdapter:
         if matched_keywords:
             await self.process_matched_keywords(event, matched_keywords)
 
-    @classmethod
-    async def reaction_listener(cls, event):
+    async def reaction_listener(self, event):
         if event.top_msg_id and event.top_msg_id != EnvProcessor.system_topic_id():
             like_count = dislike_count = 0
             if event.reactions.results:
@@ -46,7 +47,10 @@ class TelegramAdapter:
                     'likeCount': like_count,
                     'dislikeCount': dislike_count,
                     }
-            save_reaction(data)
+            try:
+                save_reaction(data)
+            except requests.RequestException as e:
+                await self.error_handler.send_log(f"An unexpected error occurred: {e}", ERROR)
 
     async def run_client(self, client):
         self.client = client
@@ -100,7 +104,7 @@ class TelegramAdapter:
                 try:
                     await self.client(functions.channels.JoinChannelRequest(chat))  # type: ignore
                 except Exception as e:
-                    self.error_handler.send_exception_error(chat, e)
+                    await self.error_handler.send_exception_error(chat, e)
 
     async def handle_database_posting(self, event, lemmas, matched_keywords):
         return await self.error_handler.send_api_log(post_message_to_db_archive, event.text, ' '.join(lemmas),
