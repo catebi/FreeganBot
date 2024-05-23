@@ -66,9 +66,9 @@ class EnvProcessor:
 
     @classmethod
     @lru_cache()
-    def chat_send_to(cls) -> str:
+    def chat_send_to(cls) -> int:
         """Return the identifier where Telegram messages should be sent."""
-        return cls._get_env('TELEGRAM_CHAT_SEND_TO', '')
+        return int(cls._get_env('TELEGRAM_CHAT_SEND_TO', 0))
 
     @classmethod
     @lru_cache()
