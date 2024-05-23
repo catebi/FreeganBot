@@ -70,9 +70,20 @@ Telegram bot to search for donations in chats and channels
     - `ENV` is prod/dev (dev is default).
     - `TELEGRAM_API_ID` is from [my.telegram.org](https://my.telegram.org) `api_id`.
     - `TELEGRAM_API_HASH` is from [my.telegram.org](https://my.telegram.org) `api_hash`.
-    - `TELEGRAM_CHAT_SEND_TO` is Telegram Username where bot should send donation messages to (for dev purposes it's
+    - `TELEGRAM_CHAT_SEND_TO` is Telegram Chat ID where bot should send donation messages to (for dev purposes it's
       usually your test chat).
-8. [x] **Setting up your test environment**: You should test the bot functions with your test chat. Here's how to do that:
+   
+    **Attention**! To get Chat ID, you should copy your public chat URL and insert it into "CHAT_URL" in [get_chat_id](./utils/get_chat_id.py) script.
+
+    Once you've done it, run the script. You see the output like:
+
+    ```
+    Id for chat YOUR_CHAT_URL is -YOUR_CHAT_ID
+    ```
+
+    Copy chat ID (exactly negative number!) into `TELEGRAM_CHAT_SEND_TO` env variable.
+
+9. [x] **Setting up your test environment**: You should test the bot functions with your test chat. Here's how to do that:
 
     - Create a public chat or channel in Telegram
     - Add [@freegan_catebi_leshiy_bot](https://t.me/freegan_catebi_leshiy_bot) into your chat
