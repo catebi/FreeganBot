@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  freegan_bot:
+    build: .
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    command: python3 main.py
