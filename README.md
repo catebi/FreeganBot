@@ -6,7 +6,7 @@ Telegram bot to search for donations in chats and channels
 
 ### Prerequisites
 
-1. [x] **Python Installation**: This script requires Python, specifically version 3.12, due to compatibility with libraries
+1. **Python Installation**: This script requires Python, specifically version 3.12, due to compatibility with libraries
    used. Here are the steps to install Python 3.12:
 
     - **Ubuntu/Linux**:
@@ -17,7 +17,8 @@ Telegram bot to search for donations in chats and channels
       ```
 
     - **Windows**:
-      Download and install Python 3.12 from [Python Releases for Windows](https://www.python.org/downloads/windows/). During installation, make sure to check the
+      Download and install Python 3.12 from [Python Releases for Windows](https://www.python.org/downloads/windows/).
+      During installation, make sure to check the
       option 'Add Python 3.12 to PATH'.
 
     - **macOS**:
@@ -35,7 +36,7 @@ Telegram bot to search for donations in chats and channels
    ```bash
    python3.12 --version
    ```
-2. [x] **Setting Up Venv**: First, create [venv](https://docs.python.org/3/library/venv.html) for the project with this
+2. **Setting Up Venv**: First, create [venv](https://docs.python.org/3/library/venv.html) for the project with this
    command:
    ```bash
    python3.12 -m venv venv
@@ -44,24 +45,30 @@ Telegram bot to search for donations in chats and channels
    ```bash
    source venv/bin/activate
    ```
-3. [x] **Install Dependencies**: install all required dependencies with
+3. **Install Dependencies**: install all required dependencies with
    this [command](https://pip.pypa.io/en/stable/user_guide/):
 
    ```bash
    pip install -r requirements.txt
    ```
-4. [x] **Telegram API Credentials**: You need a Telegram API `api_id` and `api_hash`. These are obtained by registering your
+4. **Install Docker and Docker Compose**: install Docker with [guide](https://docs.docker.com/engine/install/ubuntu/)
+   and Docker Compose with this [guide](https://docs.docker.com/compose/install/).
+5. **Run project**: run this docker compose command:
+   ```bash
+   docker compose up --build
+   ```
+6. **Telegram API Credentials**: You need a Telegram API `api_id` and `api_hash`. These are obtained by registering your
    application on Telegram’s website. Here's how:
 
     - Go to [my.telegram.org](https://my.telegram.org).
     - Log in with your Telegram account.
     - Click on 'API development tools' and fill out the form to create a new application.
     - Once created, you'll receive your `api_id` and `api_hash`.
-5. [x] **Internet Connection**: Since the script interacts with Telegram's servers, an active internet connection is
+7. **Internet Connection**: Since the script interacts with Telegram's servers, an active internet connection is
    required.
-6. [x] **A Telegram Account**: The script will run under your Telegram account, so ensure you have access to the account you
+8. **A Telegram Account**: The script will run under your Telegram account, so ensure you have access to the account you
    intend to use.
-7. [x] **Environment Variables**: copy `env.example` content into `.env` file with this command:
+9. **Environment Variables**: copy `env.example` content into `.env` file with this command:
    ```bash
    [ ! -f .env ] && cp env.example .env
    ```
@@ -72,22 +79,23 @@ Telegram bot to search for donations in chats and channels
     - `TELEGRAM_API_HASH` is from [my.telegram.org](https://my.telegram.org) `api_hash`.
     - `TELEGRAM_CHAT_SEND_TO` is Telegram Chat ID where bot should send donation messages to (for dev purposes it's
       usually your test chat).
-   
-    **Attention**! To get Chat ID, you should copy your public chat URL and insert it into "CHAT_URL" in [get_chat_id](./utils/get_chat_id.py) script.
 
-    Once you've done it, run the script. You see the output like:
+   **Attention**! To get Chat ID, you should copy your public chat URL and insert it into "CHAT_URL"
+   in [get_chat_id](./utils/get_chat_id.py) script.
+
+   Once you've done it, run the script. You see the output like:
 
     ```
     Id for chat YOUR_CHAT_URL is -YOUR_CHAT_ID
     ```
 
-    Copy chat ID (exactly negative number!) into `TELEGRAM_CHAT_SEND_TO` env variable.
+   Copy chat ID (exactly negative number!) into `TELEGRAM_CHAT_SEND_TO` env variable.
 
-9. [x] **Setting up your test environment**: You should test the bot functions with your test chat. Here's how to do that:
+10. **Setting up your test environment**: You should test the bot functions with your test chat. Here's how to do that:
 
-    - Create a public chat or channel in Telegram
-    - Add [@freegan_catebi_leshiy_bot](https://t.me/freegan_catebi_leshiy_bot) into your chat
-    - Give it Admin role and make sure bot is allowed to send messages in the chat
+     - Create a public chat or channel in Telegram
+     - Add [@freegan_catebi_leshiy_bot](https://t.me/freegan_catebi_leshiy_bot) into your chat
+     - Give it Admin role and make sure bot is allowed to send messages in the chat
 
 ### Additional Description
 
