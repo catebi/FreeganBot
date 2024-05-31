@@ -6,39 +6,39 @@ Telegram bot to search for donations in chats and channels
 
 ### Prerequisites
 
-1. [x] **Python Installation**: This script requires Python, specifically version 3.13, due to compatibility with libraries
-   used. Here are the steps to install Python 3.13:
+1. [x] **Python Installation**: This script requires Python, specifically version 3.12, due to compatibility with libraries
+   used. Here are the steps to install Python 3.12:
 
     - **Ubuntu/Linux**:
       ```bash
       sudo add-apt-repository ppa:deadsnakes/ppa
       sudo apt update
-      sudo apt install python3.13 python3.13-venv python3.13-dev
+      sudo apt install python3.12 python3.12-venv python3.12-dev
       ```
 
     - **Windows**:
-      Download and install Python 3.13 from [Python Releases for Windows](https://www.python.org/downloads/windows/). During installation, make sure to check the
-      option 'Add Python 3.13 to PATH'.
+      Download and install Python 3.12 from [Python Releases for Windows](https://www.python.org/downloads/windows/). During installation, make sure to check the
+      option 'Add Python 3.12 to PATH'.
 
     - **macOS**:
       Install Homebrew if it's not already installed:
       ```bash
       /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
       ```
-      Then, install Python 3.13 using Homebrew:
+      Then, install Python 3.12 using Homebrew:
       ```bash
-      brew install python@3.13
-      brew link --overwrite python@3.13
+      brew install python@3.12
+      brew link --overwrite python@3.12
       ```
 
    Verify the installation by checking the Python version:
    ```bash
-   python3.13 --version
+   python3.12 --version
    ```
 2. [x] **Setting Up Venv**: First, create [venv](https://docs.python.org/3/library/venv.html) for the project with this
    command:
    ```bash
-   python3.13 -m venv venv
+   python3.12 -m venv venv
    ```
    Next, activate venv:
    ```bash
