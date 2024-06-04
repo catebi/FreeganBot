@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import signal
-from logging import DEBUG, INFO
+from logging import INFO
 
 from telethon import TelegramClient
 
@@ -10,7 +10,7 @@ from telegram_api.telegram_adapter import TelegramAdapter
 from utils.env_processor import EnvProcessor
 
 CHAT_LOGGING_LEVEL = INFO
-CONSOLE_LOGGING_LEVEL = DEBUG
+CONSOLE_LOGGING_LEVEL = INFO
 
 
 async def main():
