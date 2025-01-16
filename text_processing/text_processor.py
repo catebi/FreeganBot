@@ -18,6 +18,8 @@ def find_intersections(lemmas: set) -> set[set]:
 
         if intersection_keywords:
             if (group.include_keywords and intersection_include) or (
-                    group.exclude_keywords and not intersection_exclude):
+                    group.exclude_keywords and not intersection_exclude) or (
+                    not group.include_keywords and not group.exclude_keywords
+                    ):
                 matched_keywords.update(intersection_keywords)
     return matched_keywords
