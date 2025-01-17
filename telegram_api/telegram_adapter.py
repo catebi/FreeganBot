@@ -1,16 +1,15 @@
 import asyncio
 import logging
-from logging import ERROR, INFO
+from logging import ERROR, INFO, WARNING
 
 import requests
+from catebi_api.catebi_adapter import post_message_to_db_archive, save_reaction
+from telegram_api.error_handler import ErrorHandler
 from telethon import events, functions
 from telethon.tl.types import UpdateMessageReactions
-
-from catebi_api.catebi_adapter import save_reaction, post_message_to_db_archive
-from telegram_api.error_handler import ErrorHandler
 from text_processing.text_processor import process_text_and_extract_keywords
 from utils.env_processor import EnvProcessor
-from utils.telegram_utils import get_sender_username, prepare_message_hash_and_photos, get_current_time, \
+from utils.telegram_utils import get_current_time, get_sender_username, prepare_message_hash_and_photos, \
     save_message_reaction
 
 
@@ -72,7 +71,7 @@ class TelegramAdapter:
                     self.client.disconnect()
 
     async def process_matched_keywords(self, event, matched_keywords):
-        sender, display_username = await get_sender_username(event)
+        _, display_username = await get_sender_username(event)
         message_hash, message_photos = await prepare_message_hash_and_photos(self.client, event)
         if message_hash not in self.sent_messages_cache:
             await self.send_message_with_media(event, matched_keywords, display_username, message_hash, message_photos)
@@ -96,11 +95,24 @@ class TelegramAdapter:
             await self.error_handler.send_log("Freegan has stopped", INFO)
             self.client.disconnect()
 
+    async def is_chat_available(self, chat_name):
+        try:
+            await self.client.get_entity(chat_name)
+            return True
+        except ValueError:
+            await self.error_handler.send_log(
+                f"Chat {chat_name} is not available. Check if it exists and if you have access to this chat",
+                WARNING)
+            return False
+        except Exception as e:
+            await self.error_handler.send_log(f"An unexpected error occurred: {e}", ERROR)
+            return False
+
     async def check(self):
         dialogs = [f'https://t.me/{dialog.draft.entity.username}' async for dialog in self.client.iter_dialogs() if
                    dialog.is_channel and dialog.draft.entity.username]
         for chat in EnvProcessor.chat_urls():
-            if chat not in dialogs:
+            if await self.is_chat_available(chat) and chat not in dialogs:
                 try:
                     await self.client(functions.channels.JoinChannelRequest(chat))  # type: ignore
                 except Exception as e:
