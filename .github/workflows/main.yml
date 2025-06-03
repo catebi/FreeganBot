@@ -15,8 +15,45 @@ jobs:
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.NOTIFY_BOT_TOKEN }}/sendMessage" \
           -d "chat_id=${{ vars.IT_TELEGRAM_CHAT_ID }}&text=${start_msg}&message_thread_id=${{ vars.IT_TELEGRAM_CHAT_NOTIFY_TOPIC_ID }}&parse_mode=HTML"
 
-  copy:
+  shutdown_bot:
     needs: notify_start
+    runs-on: ubuntu-latest
+    steps:
+      - name: Shutdown bot
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ~/FreeganBot
+            echo "Shutting down..."
+            docker-compose down
+
+  save_session:
+    needs: shutdown_bot
+    runs-on: ubuntu-latest
+    outputs:
+      session_file: ${{ steps.save_session.outputs.session_file }}
+    steps:
+      - name: Save Telegram session
+        id: save_session
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            echo "Saving session file..."
+            session_tmp_dir=$(mktemp -d)
+            cp FreeganBot/catebi_freegan.session "$session_tmp_dir"
+            echo "session_file=$session_tmp_dir/catebi_freegan.session" >> "$GITHUB_OUTPUT"
+            echo "Saved session file and saved its location in CI..."
+            echo "Removing deployment directory to ensure clean build..."
+            rm -rf FreeganBot
+
+  copy:
+    needs: save_session
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -34,11 +71,13 @@ jobs:
           target: ~/FreeganBot
 
   build_deploy:
-    needs: copy
+    needs: [copy, save_session]
     runs-on: ubuntu-latest
     steps:
       - name: Build and deploy
         uses: appleboy/ssh-action@v0.1.7
+        env:
+          session_file: ${{ needs.save_session.outputs.session_file }}
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.USERNAME }}
@@ -47,22 +86,23 @@ jobs:
             cd ~/FreeganBot
             echo "Updating .env file..."
             cat <<EOF > .env
-            TELEGRAM_CHAT_SEND_TO=FREEGAN_CHAT_ACCOUNT_ID
-            TELEGRAM_API_HASH=${{ secrets.TELEGRAM_API_HASH }}
-            MESSAGES_COLLECTING_IS_ON=False
-            DEVELOPERS=@KFears, @shion_sigma
-            CHATS=https://t.me/CHAT_1
             ENV=prod
             TELEGRAM_API_ID=${{ secrets.TELEGRAM_API_ID }}
-            TOPIC_ID=TOPIC_ID
+            TELEGRAM_API_HASH=${{ secrets.TELEGRAM_API_HASH }}
+            MESSAGES_COLLECTING_IS_ON=False
+            TELEGRAM_CHAT_SEND_TO=${{ vars.TELEGRAM_CHAT_SEND_TO }}
+            CHATS=https://t.me/CHAT_1
+            DEVELOPERS=@KFears, @shion_sigma
+            TOPIC_ID=${{ vars.TOPIC_ID }}
             CATEBI_API_LINK=https://api.catebi.ge/api
             EOF
+            echo "Restoring session file..."
+            mv "$session_file" .
             echo "Pulling Docker images..."
-            docker-compose down
             docker-compose up --build -d
 
   notify_finish:
-    needs: [notify_start, copy, build_deploy]
+    needs: [build_deploy]
     runs-on: ubuntu-latest
     steps:
       - name: Notify Deployment Success
