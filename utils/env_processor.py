@@ -85,7 +85,9 @@ class EnvProcessor:
         if cls._get_env('ENV', 'dev') == 'dev':
             return cls.get_env_variable_list('CHATS')
         else:
-            response = requests.get('example.api')
+            print(cls.catebi_api())
+            response = requests.get(cls.catebi_api() + '/Freegan/getdonationchats')
+            print(response)
             return [x['url'] for x in response.json()]
 
     @classmethod
